@@ -1,3 +1,5 @@
+//写给自己：添加功能要写5个部分，链接，链接data，switch,switchdata,init-kissTJUconfig
+
 const title = document.getElementById("hhhh");
 const sentence = document.getElementById("sentence");
 
@@ -12,6 +14,7 @@ const link_geogeba = document.getElementById("link_geogeba");
 const link_cet = document.getElementById("link_cet");
 const link_cg = document.getElementById("link_cg");
 const link_mooc = document.getElementById("link_mooc");
+const link_sso = document.getElementById("link_sso");
 
 const footer = document.getElementById("wwww");
 
@@ -30,6 +33,7 @@ const linkData = [
   { key: link_cet, src: "https://cet.neea.edu.cn" },
   { key: link_cg, src: "https://tyapp.chingo.cn/cgapp/" },
   { key: link_mooc, src: "https://www.icourse163.org/" },
+  { key: link_sso, src: "https://sso.tju.edu.cn/cas/login" },
 ];
 
 const seat_s1 = document.getElementById("seat-s1");
@@ -43,6 +47,7 @@ const classes_s5 = document.getElementById("classes-s5");
 const classes_s6 = document.getElementById("classes-s6");
 const twt_s1 = document.getElementById("twt-s1");
 const mooc_s1 = document.getElementById("mooc-s1");
+const sso_s1 = document.getElementById("sso-s1");
 
 const switchData = [
   { key: seat_s1, fx: "seat_grab" },
@@ -54,6 +59,7 @@ const switchData = [
   { key: classes_s5, fx: "showWeightedScore" },
   { key: classes_s6, fx: "classes_clickHeart" },
   { key: mooc_s1, fx: "mook_jumpQuestion" },
+  { key: sso_s1, fx: "sso_fixForm" },
 ];
 
 //有可能要在不同中操作定时器 搞成全局变量
@@ -63,7 +69,7 @@ var timer;
 if (sentence) {
   sendGetRequest("https://api.xygeng.cn/one", function (resp) {
     const { content, origin } = JSON.parse(resp).data;
-    sentence.innerHTML = `${content} --${origin}`;
+    sentence.innerHTML = `${content}   --${origin}`;
   });
 }
 
@@ -165,6 +171,10 @@ function init() {
         },
         mook_jumpQuestion: {
           switch: "mook-s1",
+          value: 0,
+        },
+        sso_fixForm: {
+          switch: "sso_s1",
           value: 0,
         },
       };

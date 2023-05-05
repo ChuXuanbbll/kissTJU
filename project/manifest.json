@@ -1,6 +1,6 @@
 {
   "name": "kiss_TJU",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "manifest_version": 3,
   "description": "A collection of tools to improve TJUer's life experience",
   "icons": {
@@ -25,9 +25,10 @@
         "https://theory.twt.edu.cn/*",
         "https://cet.neea.edu.cn/*",
         "https://tyapp.chingo.cn/cgapp/*",
-        "https://www.icourse163.org/"
+        "https://www.icourse163.org/",
+        "https://sso.tju.edu.cn/*"
       ],
-      "js": ["chuxuan.js"],
+      "js": ["tesseract.js", "chuxuan.js"],
       "run_at": "document_idle"
     }
   ],

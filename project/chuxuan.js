@@ -7,6 +7,7 @@ function kissTJU() {
   console.log(`path: ${$path}`);
   chrome.storage.sync.get(["kissTJUConfig"], function (data) {
     const { kissTJUConfig } = data;
+    // console.log("config: ", kissTJUConfig);
 
     switch ($host) {
       case "classes.tju.edu.cn":
@@ -18,6 +19,15 @@ function kissTJU() {
       case "www.icourse163.org":
         handle_mooc(kissTJUConfig);
         break;
+      case "sso.tju.edu.cn":
+        handle_sso(kissTJUConfig);
+        break;
+      case "":
+        break;
+      case "":
+        break;
+      case "":
+        break;
       default:
         break;
     }
@@ -26,7 +36,7 @@ function kissTJU() {
 
 kissTJU();
 
-/***********************方法****************************** */
+/***********************界面****************************** */
 /**
  * classes.tju.edu.cn
  * @returns
@@ -85,6 +95,69 @@ function handle_mooc(config) {
     fx_mook_jumpQuestion();
   }
 }
+
+function handle_sso(config) {
+  console.log("fx r: handle_sso");
+  if ($host !== "sso.tju.edu.cn") {
+    return;
+  }
+  //如果有成功界面就停止
+  if (document.querySelector(".alert-success")) {
+    return;
+  }
+  //获取配置里的账号密码并填入
+  chrome.storage.sync.get(["kissTJUConfig"], function (data) {
+    const { kissTJUConfig } = data;
+    if (kissTJUConfig && kissTJUConfig.sso_username && kissTJUConfig.sso_pswd) {
+      document.getElementById("username").value = atob(kissTJUConfig.sso_username);
+      document.getElementById("password").value = atob(kissTJUConfig.sso_pswd);
+    }
+  });
+  //在输入框下面添加保存密码和遗忘密码的按钮
+  const temp1 = document.querySelector(".sidebar-content");
+  const storageInfo = temp1.children[0]?.cloneNode(true);
+
+  storageInfo.children[0].href = "";
+  storageInfo.children[0].textContent = "让kissTJU存储您的账号和密码";
+
+  const forgetInfo = temp1.children[0].cloneNode(true);
+  forgetInfo.children[0].href = "";
+  forgetInfo.children[0].textContent = "让kissTJU忘记您的账号和密码";
+
+  storageInfo.onclick = function () {
+    chrome.storage.sync.get(["kissTJUConfig"], function (data) {
+      const { kissTJUConfig } = data;
+      if (kissTJUConfig) {
+        kissTJUConfig.sso_username = btoa(document.getElementById("username")?.value);
+        kissTJUConfig.sso_pswd = btoa(document.getElementById("password")?.value);
+        chrome.storage.sync.set({ kissTJUConfig }, function () {});
+        alert("(kissTJU不会发送您的账号和密码，但是会将其转换编码后以密文存储在本地，其他浏览器插件或网页可以读取，有泄密风险)");
+      }
+    });
+  };
+
+  forgetInfo.onclick = function () {
+    chrome.storage.sync.get(["kissTJUConfig"], function (data) {
+      const { kissTJUConfig } = data;
+      if (kissTJUConfig) {
+        kissTJUConfig.sso_username = void 0;
+        kissTJUConfig.sso_pswd = void 0;
+        chrome.storage.sync.set({ kissTJUConfig }, function () {});
+        alert("(已从本地删除您的账号和密码记录)");
+      }
+    });
+  };
+
+  temp1.appendChild(storageInfo);
+  temp1.appendChild(forgetInfo);
+
+  const { sso_fixForm } = config;
+  if (sso_fixForm && sso_fixForm.value) {
+    fx_sso_fixForm();
+  }
+}
+
+/********************工具函数**************************/
 /**
  * 自动评教
  * 由于没有评教界面参考，不知效果
@@ -92,7 +165,7 @@ function handle_mooc(config) {
 function fx_autoEvaluate() {
   console.log("fx r: autoEvaluate");
   let timer = setInterval(function () {
-    if (document.getElementById("current-bar").children[1].textContent === "学生评教") {
+    if (document.getElementById("current-bar")?.children[1]?.textContent.match("学生评教")) {
       inject();
       // clearInterval(timer);
     }
@@ -123,7 +196,7 @@ function fx_myplan_fixMeterHead() {
   console.log("fx r :myplan_fixMeterHead");
   //检测到对应界面打开才会注入
   let timer = setInterval(function () {
-    if (document.getElementById("current-bar").children[1].textContent === "培养计划") {
+    if (document.getElementById("current-bar")?.children[1]?.textContent.match("培养计划")) {
       inject();
       // clearInterval(timer);
     }
@@ -165,12 +238,12 @@ function fx_removeFooter() {
 }
 
 /**
- * 便捷查看课程信息课程大纲
+ * 课表功能增强：便捷查看课程信息课程大纲
  */
 function fx_checkClassInfo() {
   console.log("fx r: checkClassInfo");
   let timer = setInterval(function () {
-    if (document.getElementById("current-bar").children[1].textContent === "我的课表") {
+    if (document.getElementById("current-bar")?.children[1]?.textContent.match("我的课表")) {
       inject();
       // clearInterval(timer);
     }
@@ -215,7 +288,7 @@ function fx_checkClassInfo() {
 function fx_showWeightedScore() {
   console.log("fx r: showWeightedScore");
   let timer = setInterval(function () {
-    if (document.getElementById("current-bar").children[1].textContent === "我的成绩") {
+    if (document.getElementById("current-bar")?.children[1]?.textContent.match("我的成绩")) {
       inject();
       // clearInterval(timer);
     }
@@ -241,13 +314,11 @@ function fx_showWeightedScore() {
         //如果已经计算过了，就不再加新行了
         let isinjected = tr.children[2].textContent === "kissTJU";
         if (isinjected) {
-          // console.log("injected");
           return;
         }
         //重修成绩不计入
         let isRemake = tr.children[2].textContent.match(/(重修)/);
         if (isRemake) {
-          // console.log("remake", isRemake);
           continue;
         }
         let credit = tr.children[5].textContent - 0;
@@ -256,15 +327,13 @@ function fx_showWeightedScore() {
         if (isNaN(credit + score + GPA)) {
           continue; //成绩可能是P
         }
-        // console.log(credit, score, GPA, typeof credit, typeof score, typeof GPA);
         totalCredit += credit;
         totalScore += credit * score;
         totalGPA += credit * GPA;
-        // console.log(totalCredit, totalScore, totalGPA);
       }
       avgScore = totalScore / totalCredit;
       avgGPA = totalGPA / totalCredit;
-      newTr = tbody.children[0].cloneNode(true);
+      newTr = tbody.children[len - 2 > 0 ? len - 2 : 0].cloneNode(true);
       newTr.children[1].textContent = "1919810";
       newTr.children[2].textContent = "kissTJU";
       newTr.children[3].textContent = "实用工具";
@@ -283,7 +352,7 @@ function fx_showWeightedScore() {
 function fx_classes_clickHeart() {
   console.log("fx r: clickHeart");
   let timer = setInterval(function () {
-    if (document.getElementById("current-bar").children[1].textContent) {
+    if (document.getElementById("current-bar")?.children[1]?.textContent) {
       inject();
       // clearInterval(timer);
     }
@@ -425,7 +494,6 @@ function fx_mook_jumpQuestion() {
     })();
   }
 }
-/********************工具函数**************************/
 
 /**
  * 通用点击小心心
@@ -525,4 +593,336 @@ function fx_common_clickHeart() {
       return "rgb(" + ~~(Math.random() * 255) + "," + ~~(Math.random() * 255) + "," + ~~(Math.random() * 255) + ")";
     }
   })(window, document);
+}
+
+/**
+ * 登录界面自动填验证码或信息
+ */
+function fx_sso_fixForm() {
+  console.log("fx r: fx_sso_fixForm");
+
+  // let timer = setInterval(function () {
+  if (document.getElementById("captcha") && document.getElementById("captcha").value === "") {
+    inject();
+    // clearInterval(timer);
+  }
+  // }, 1000);
+
+  function inject() {
+    const canvas = document.createElement("canvas");
+    document.body.append(canvas);
+    const img = document.querySelector("#captcha_img");
+    // img.style.scale = 1.44;
+    img.setAttribute("crossOrigin", "Anonymous");
+    img.setAttribute("referrerpolicy", "no-referrer");
+    img.onload = () => {
+      let { width, height } = img;
+      let scale = 1.44;
+      width *= scale; //乘1.44使其与开发环境宽高相同
+      height *= scale;
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height, 0, 0, width, height);
+      let imageData = ctx.getImageData(0, 0, width, height).data;
+
+      //擦边界
+      //这个点黑不黑
+      function isBlack(i, j) {
+        if (i < 0 || j < 0) {
+          return null;
+        }
+        const r = imageData[4 * (i * width + j) + 0];
+        const g = imageData[4 * (i * width + j) + 1];
+        const b = imageData[4 * (i * width + j) + 2];
+        const a = imageData[4 * (i * width + j) + 3];
+        //阈值
+        if (r + g + b < 500) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      //让这个点变成白色
+      function setWhite(i, j) {
+        if (i < 0 || j < 0) {
+          return null;
+        }
+        imageData[4 * (i * width + j) + 0] = 255;
+        imageData[4 * (i * width + j) + 1] = 255;
+        imageData[4 * (i * width + j) + 2] = 255;
+        imageData[4 * (i * width + j) + 3] = 255;
+      }
+      //让这个点变成黑色
+      function setBlack(i, j) {
+        imageData[4 * (i * width + j) + 0] = 0;
+        imageData[4 * (i * width + j) + 1] = 0;
+        imageData[4 * (i * width + j) + 2] = 0;
+        imageData[4 * (i * width + j) + 3] = 255;
+      }
+      // 二值化
+      for (let i = 0; i < height; i += 1) {
+        for (let j = 0; j < width; j += 1) {
+          if (!isBlack(i, j)) {
+            imageData[4 * (i * width + j) + 0] = 255;
+            imageData[4 * (i * width + j) + 1] = 255;
+            imageData[4 * (i * width + j) + 2] = 255;
+            imageData[4 * (i * width + j) + 3] = 255;
+          } else {
+            imageData[4 * (i * width + j) + 0] = 0;
+            imageData[4 * (i * width + j) + 1] = 0;
+            imageData[4 * (i * width + j) + 2] = 0;
+            imageData[4 * (i * width + j) + 3] = 255;
+          }
+        }
+      }
+      //左边28宽必是干扰
+      for (let i = 0; i < height; i += 1) {
+        for (let j = 0; j < 28; j += 1) {
+          setWhite(i, j);
+        }
+      }
+      //粗略填充
+      for (let k = 0; k < 1; k++) {
+        let edgeArr = [];
+        for (let i = 0; i < height; i += 1) {
+          for (let j = 0; j < width; j += 1) {
+            const p = isBlack(i, j);
+            const nabor = [
+              [-1, 0],
+              [-1, 1],
+              [0, 1],
+              [1, 1],
+              [1, 0],
+              [1, -1],
+              [0, -1],
+              [-1, -1],
+            ];
+            let naborNum = 0;
+            nabor.forEach((direction, index) => {
+              const [i_p, j_p] = [i + direction[0], j + direction[1]];
+              const p_p = isBlack(i_p, j_p);
+              if (p_p) {
+                naborNum += 1;
+              }
+            });
+            if (naborNum > 6) {
+              edgeArr.push([i, j]);
+            }
+          }
+        }
+        edgeArr.forEach((point, index) => {
+          setBlack(point[0], point[1]);
+        });
+      }
+
+      //去掉孤零零点 并平滑边界
+      for (let k = 0; k < 2; k++) {
+        let edgeArr = [];
+        for (let i = 0; i < height; i += 1) {
+          for (let j = 0; j < width; j += 1) {
+            const p = isBlack(i, j);
+            const nabor = [
+              [-1, 0],
+              [-1, 1],
+              [0, 1],
+              [1, 1],
+              [1, 0],
+              [1, -1],
+              [0, -1],
+              [-1, -1],
+            ];
+            let naborNum = 0;
+            nabor.forEach((direction, index) => {
+              const [i_p, j_p] = [i + direction[0], j + direction[1]];
+              const p_p = isBlack(i_p, j_p);
+              if (p_p) {
+                naborNum += 1;
+              }
+            });
+            if (naborNum < 4) {
+              edgeArr.push([i, j]);
+            }
+          }
+        }
+        edgeArr.forEach((point, index) => {
+          setWhite(point[0], point[1]);
+        });
+      }
+
+      //根据周围点判断这个点所在的图形是否为干扰线，干扰线比较细
+      for (let k = 0; k < 4; k++) {
+        let edgeArr = [];
+        for (let i = 0; i < height; i += 1) {
+          for (let j = 0; j < width; j += 1) {
+            //对黑点操作
+            const nabors = [
+              [
+                [-1, 0],
+                [1, 0],
+              ],
+              [
+                [-1, 0],
+                [2, 0],
+              ],
+              [
+                [-1, 0],
+                [3, 0],
+              ],
+              [
+                [-1, 0],
+                [4, 0],
+              ], //-
+              [
+                [0, -1],
+                [0, 1],
+              ],
+              [
+                [0, -1],
+                [0, 2],
+              ],
+              [
+                [0, -1],
+                [0, 3],
+              ],
+              [
+                [0, -1],
+                [0, 4],
+              ], //|
+            ];
+            if (isBlack(i, j)) {
+              nabors.forEach((nabor, index) => {
+                const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+                if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
+                  edgeArr.push([i, j]);
+                }
+              });
+            }
+          }
+        }
+        edgeArr.forEach((point, index) => {
+          setWhite(point[0], point[1]);
+        });
+      }
+      for (let k = 0; k < 2; k++) {
+        let edgeArr = [];
+        for (let i = 0; i < height; i += 1) {
+          for (let j = 0; j < width / 4; j += 1) {
+            //对黑点操作
+            const nabors = [
+              [
+                [-1, -1],
+                [1, 1],
+              ],
+              [
+                [-1, -1],
+                [2, 2],
+              ],
+              [
+                [-1, -1],
+                [3, 3],
+              ], ///
+              [
+                [-1, 1],
+                [1, -1],
+              ],
+              [
+                [-1, 1],
+                [2, -2],
+              ],
+              [
+                [-1, 1],
+                [3, -3],
+              ], //\
+            ];
+            if (isBlack(i, j)) {
+              nabors.forEach((nabor, index) => {
+                const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+                if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
+                  edgeArr.push([i, j]);
+                }
+              });
+            }
+          }
+        }
+        edgeArr.forEach((point, index) => {
+          setWhite(point[0], point[1]);
+        });
+      }
+
+      //修补缝隙
+      for (let k = 0; k < 1; k++) {
+        let edgeArr = [];
+        for (let i = 0; i < height; i += 1) {
+          for (let j = 0; j < width; j += 1) {
+            //对黑点操作
+            const nabors = [
+              [
+                [-1, 0],
+                [1, 0],
+              ],
+              [
+                [0, -1],
+                [0, 1],
+              ],
+            ];
+            if (!isBlack(i, j)) {
+              nabors.forEach((nabor, index) => {
+                const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+                if (isBlack(i + i_p, j + j_p) && isBlack(i + i_q, j + j_q)) {
+                  edgeArr.push([i, j]);
+                }
+              });
+            }
+          }
+        }
+        edgeArr.forEach((point, index) => {
+          setBlack(point[0], point[1]);
+        });
+      }
+
+      const myimg = new ImageData(imageData, width, height);
+      ctx.putImageData(myimg, 0, 0, 0, 0, width, height);
+
+      const dataURL = canvas.toDataURL("image/jpeg");
+      Tesseract.recognize(dataURL, "eng", { logger: (m) => {} }).then(({ data: { text } }) => {
+        let code = text;
+        code = code.replace(/(<c)|(¢c)/g, "c");
+        code = code.replace(/(<)|(¢)/g, "c");
+        code = code.replace(/(£)|(€)/g, "f");
+
+        code = code.replace(/[^a-zA-Z0-9]/, "");
+
+        code = code.match(/[a-zA-Z0-9]{1,}/)[0];
+        code = code.replace(/(s5)|(5s)|(S5)|(5S)/g, "5");
+        code = code.replace(/(s)|(S)/g, "5");
+        code = code.replace(/(fF)|(Ff)/g, "f");
+        code = code.replace(/(t)|(1)/g, "f");
+        code = code.replace(/(b6)|(6b)/g, "6");
+        code = code.replace(/G|B/g, "6");
+        code = code.replace(/(Qq)|(qQ)|(9q)|(q9)/g, "g");
+        code = code.replace(/(Q)|(q)|(9)/g, "g");
+        code = code.replace(/(A)/g, "4");
+        code = code.replace(/(bh)/g, "b");
+        code = code.replace(/h|H/g, "b");
+        code = code.replace(/(l|I)/g, "");
+        code = code.replace(/T/g, "7");
+
+        code = code.substr(-4);
+        console.log(text, code);
+        // alert(`${text}--${code}`);
+        document.getElementById("captcha").value = code;
+        const hasUsername = document.getElementById("username").value.length;
+        const hasPswd = document.getElementById("password").value.length;
+        if (hasUsername && hasPswd) {
+          document.getElementsByName("submit")[0].removeAttribute("disabled");
+          document.getElementsByName("submit")[0].click();
+        }
+      });
+    };
+  }
 }
