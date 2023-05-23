@@ -2,253 +2,253 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+    <title>Document</title>
 </head>
 <img src="http://47.95.112.111:8888/proxy?q=https://sso.tju.edu.cn/cas/images/kaptcha.jpg" alt="">
 <div>
-  <canvas id="canvas1"></canvas>
-  <canvas id="canvas2"></canvas>
-  <canvas id="canvas3"></canvas>
+    <canvas id="canvas1"></canvas>
+    <canvas id="canvas2"></canvas>
+    <canvas id="canvas3"></canvas>
 </div>
 <script>
-  const img = document.querySelector('img')
-  img.setAttribute("crossOrigin", 'Anonymous')
-  img.setAttribute("referrerpolicy", 'no-referrer')
-  img.onload = () => {
-    // const canvas = document.createElement("canvas");
-    console.log("#####")
-    const canvas1 = document.getElementById("canvas1")
-    const canvas2 = document.getElementById("canvas2")
-    const canvas3 = document.getElementById("canvas3")
-    const { width, height } = img
-    canvas1.width = width;
-    canvas1.height = height;
-    canvas2.width = width;
-    canvas2.height = height;
-    canvas3.width = width;
-    canvas3.height = height;
+    const img = document.querySelector('img')
+    img.setAttribute("crossOrigin", 'Anonymous')
+    img.setAttribute("referrerpolicy", 'no-referrer')
+    img.onload = () => {
+        // const canvas = document.createElement("canvas");
+        console.log("#####")
+        const canvas1 = document.getElementById("canvas1")
+        const canvas2 = document.getElementById("canvas2")
+        const canvas3 = document.getElementById("canvas3")
+        const { width, height } = img
+        canvas1.width = width;
+        canvas1.height = height;
+        canvas2.width = width;
+        canvas2.height = height;
+        canvas3.width = width;
+        canvas3.height = height;
 
-    const ctx1 = canvas1.getContext("2d");
-    const ctx2 = canvas2.getContext("2d");
-    const ctx3 = canvas3.getContext("2d");
-    // 转base64
-    ctx1.drawImage(img, 0, 0, width, height);
-    let imageData = ctx1.getImageData(0, 0, width, height).data;
-    console.log(imageData);
+        const ctx1 = canvas1.getContext("2d");
+        const ctx2 = canvas2.getContext("2d");
+        const ctx3 = canvas3.getContext("2d");
+        // 转base64
+        ctx1.drawImage(img, 0, 0, width, height);
+        let imageData = ctx1.getImageData(0, 0, width, height).data;
+        console.log(imageData);
 
-    //这个点黑不黑
-    function isBlack(i, j) {
-      if (i < 0 || j < 0) {
-        return null
-      }
-      const r = imageData[4 * (i * width + j) + 0];
-      const g = imageData[4 * (i * width + j) + 1];
-      const b = imageData[4 * (i * width + j) + 2];
-      const a = imageData[4 * (i * width + j) + 3];
-      if ((r + g + b) < 500) {
-        return true
-      } else {
-        return false
-      }
-    }
-    //让这个点变成白色
-    function setWhite(i, j) {
-      imageData[4 * (i * width + j) + 0] = 255;
-      imageData[4 * (i * width + j) + 1] = 255;
-      imageData[4 * (i * width + j) + 2] = 255;
-      imageData[4 * (i * width + j) + 3] = 255;
-    }
-    //让这个点变成黑色
-    function setBlack(i, j) {
-      imageData[4 * (i * width + j) + 0] = 0;
-      imageData[4 * (i * width + j) + 1] = 0;
-      imageData[4 * (i * width + j) + 2] = 0;
-      imageData[4 * (i * width + j) + 3] = 255;
-    }
-    // 二值化
-    for (let i = 0; i < height; i += 1) {
-      for (let j = 0; j < width; j += 1) {
-        if (!isBlack(i, j)) {
-          imageData[4 * (i * width + j) + 0] = 255;
-          imageData[4 * (i * width + j) + 1] = 255;
-          imageData[4 * (i * width + j) + 2] = 255;
-          imageData[4 * (i * width + j) + 3] = 255;
-        } else {
-          imageData[4 * (i * width + j) + 0] = 0;
-          imageData[4 * (i * width + j) + 1] = 0;
-          imageData[4 * (i * width + j) + 2] = 0;
-          imageData[4 * (i * width + j) + 3] = 255;
-        }
-      }
-    }
-    const myimg1 = new ImageData(imageData, width, height)
-    ctx1.putImageData(myimg1, 0, 0, 0, 0, width, height);
-    //左边28宽必是干扰
-    for (let i = 0; i < height; i += 1) {
-      for (let j = 0; j < 28; j += 1) {
-        setWhite(i, j)
-      }
-    }
-    //粗略填充
-    for (let k = 0; k < 1; k++) {
-      let edgeArr = [];
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < width; j += 1) {
-          const p = isBlack(i, j);
-          const nabor = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]];
-          let naborNum = 0;
-          nabor.forEach((direction, index) => {
-            const [i_p, j_p] = [i + direction[0], j + direction[1]]
-            const p_p = isBlack(i_p, j_p);
-            if (p_p) {
-              naborNum += 1;
+        //这个点黑不黑
+        function isBlack(i, j) {
+            if (i < 0 || j < 0) {
+                return null
             }
-          })
-          if (naborNum > 6) {
-            edgeArr.push([i, j])
-          }
-        }
-      }
-      edgeArr.forEach((point, index) => {
-        setBlack(point[0], point[1]);
-      })
-    }
-
-    //去掉孤零零点 并平滑边界
-    for (let k = 0; k < 2; k++) {
-      let edgeArr = [];
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < width; j += 1) {
-          const p = isBlack(i, j);
-          const nabor = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]];
-          let naborNum = 0;
-          nabor.forEach((direction, index) => {
-            const [i_p, j_p] = [i + direction[0], j + direction[1]]
-            const p_p = isBlack(i_p, j_p);
-            if (p_p) {
-              naborNum += 1;
+            const r = imageData[4 * (i * width + j) + 0];
+            const g = imageData[4 * (i * width + j) + 1];
+            const b = imageData[4 * (i * width + j) + 2];
+            const a = imageData[4 * (i * width + j) + 3];
+            if ((r + g + b) < 500) {
+                return true
+            } else {
+                return false
             }
-          })
-          if (naborNum < 4) {
-            edgeArr.push([i, j])
-          }
         }
-      }
-      edgeArr.forEach((point, index) => {
-        setWhite(point[0], point[1]);
-      })
-    }
-
-    const myimg2 = new ImageData(imageData, width, height)
-    ctx2.putImageData(myimg2, 0, 0, 0, 0, width, height);
-
-    //根据周围点判断这个点所在的图形是否为干扰线，干扰线比较细
-    for (let k = 0; k < 4; k++) {
-      let edgeArr = [];
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < width; j += 1) {
-          //对黑点操作
-          const nabors = [[[-1, 0], [1, 0]], [[-1, 0], [2, 0]], [[-1, 0], [3, 0]], [[-1, 0], [4, 0]],//-
-          [[0, -1], [0, 1]], [[0, -1], [0, 2]], [[0, -1], [0, 3]], [[0, -1], [0, 4]],//|
-          ]
-          if (isBlack(i, j)) {
-            nabors.forEach((nabor, index) => {
-              const [[i_p, j_p], [i_q, j_q]] = nabor;
-
-              if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
-                edgeArr.push([i, j])
-              }
+        //让这个点变成白色
+        function setWhite(i, j) {
+            imageData[4 * (i * width + j) + 0] = 255;
+            imageData[4 * (i * width + j) + 1] = 255;
+            imageData[4 * (i * width + j) + 2] = 255;
+            imageData[4 * (i * width + j) + 3] = 255;
+        }
+        //让这个点变成黑色
+        function setBlack(i, j) {
+            imageData[4 * (i * width + j) + 0] = 0;
+            imageData[4 * (i * width + j) + 1] = 0;
+            imageData[4 * (i * width + j) + 2] = 0;
+            imageData[4 * (i * width + j) + 3] = 255;
+        }
+        // 二值化
+        for (let i = 0; i < height; i += 1) {
+            for (let j = 0; j < width; j += 1) {
+                if (!isBlack(i, j)) {
+                    imageData[4 * (i * width + j) + 0] = 255;
+                    imageData[4 * (i * width + j) + 1] = 255;
+                    imageData[4 * (i * width + j) + 2] = 255;
+                    imageData[4 * (i * width + j) + 3] = 255;
+                } else {
+                    imageData[4 * (i * width + j) + 0] = 0;
+                    imageData[4 * (i * width + j) + 1] = 0;
+                    imageData[4 * (i * width + j) + 2] = 0;
+                    imageData[4 * (i * width + j) + 3] = 255;
+                }
+            }
+        }
+        const myimg1 = new ImageData(imageData, width, height)
+        ctx1.putImageData(myimg1, 0, 0, 0, 0, width, height);
+        //左边28宽必是干扰
+        for (let i = 0; i < height; i += 1) {
+            for (let j = 0; j < 28; j += 1) {
+                setWhite(i, j)
+            }
+        }
+        //粗略填充
+        for (let k = 0; k < 1; k++) {
+            let edgeArr = [];
+            for (let i = 0; i < height; i += 1) {
+                for (let j = 0; j < width; j += 1) {
+                    const p = isBlack(i, j);
+                    const nabor = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]];
+                    let naborNum = 0;
+                    nabor.forEach((direction, index) => {
+                        const [i_p, j_p] = [i + direction[0], j + direction[1]]
+                        const p_p = isBlack(i_p, j_p);
+                        if (p_p) {
+                            naborNum += 1;
+                        }
+                    })
+                    if (naborNum > 6) {
+                        edgeArr.push([i, j])
+                    }
+                }
+            }
+            edgeArr.forEach((point, index) => {
+                setBlack(point[0], point[1]);
             })
-          }
         }
-      }
-      edgeArr.forEach((point, index) => {
-        setWhite(point[0], point[1]);
-      })
-    }
-    for (let k = 0; k < 2; k++) {
-      let edgeArr = [];
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < width / 4; j += 1) {
-          //对黑点操作
-          const nabors = [
-            [[-1, -1], [1, 1]], [[-1, -1], [2, 2]], [[-1, -1], [3, 3]], ///
-            [[-1, 1], [1, -1]], [[-1, 1], [2, -2]], [[-1, 1], [3, -3]], //\
-          ]
-          if (isBlack(i, j)) {
-            nabors.forEach((nabor, index) => {
-              const [[i_p, j_p], [i_q, j_q]] = nabor;
 
-              if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
-                edgeArr.push([i, j])
-              }
+        //去掉孤零零点 并平滑边界
+        for (let k = 0; k < 2; k++) {
+            let edgeArr = [];
+            for (let i = 0; i < height; i += 1) {
+                for (let j = 0; j < width; j += 1) {
+                    const p = isBlack(i, j);
+                    const nabor = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]];
+                    let naborNum = 0;
+                    nabor.forEach((direction, index) => {
+                        const [i_p, j_p] = [i + direction[0], j + direction[1]]
+                        const p_p = isBlack(i_p, j_p);
+                        if (p_p) {
+                            naborNum += 1;
+                        }
+                    })
+                    if (naborNum < 4) {
+                        edgeArr.push([i, j])
+                    }
+                }
+            }
+            edgeArr.forEach((point, index) => {
+                setWhite(point[0], point[1]);
             })
-          }
         }
-      }
-      edgeArr.forEach((point, index) => {
-        setWhite(point[0], point[1]);
-      })
-    }
 
-    //修补缝隙
-    for (let k = 0; k < 1; k++) {
-      let edgeArr = [];
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < width; j += 1) {
-          //对黑点操作
-          const nabors = [[[-1, 0], [1, 0]], [[0, -1], [0, 1]],]
-          if (!isBlack(i, j)) {
-            nabors.forEach((nabor, index) => {
-              const [[i_p, j_p], [i_q, j_q]] = nabor;
+        const myimg2 = new ImageData(imageData, width, height)
+        ctx2.putImageData(myimg2, 0, 0, 0, 0, width, height);
 
-              if (isBlack(i + i_p, j + j_p) && isBlack(i + i_q, j + j_q)) {
-                edgeArr.push([i, j])
-              }
+        //根据周围点判断这个点所在的图形是否为干扰线，干扰线比较细
+        for (let k = 0; k < 4; k++) {
+            let edgeArr = [];
+            for (let i = 0; i < height; i += 1) {
+                for (let j = 0; j < width; j += 1) {
+                    //对黑点操作
+                    const nabors = [[[-1, 0], [1, 0]], [[-1, 0], [2, 0]], [[-1, 0], [3, 0]], [[-1, 0], [4, 0]],//-
+                    [[0, -1], [0, 1]], [[0, -1], [0, 2]], [[0, -1], [0, 3]], [[0, -1], [0, 4]],//|
+                    ]
+                    if (isBlack(i, j)) {
+                        nabors.forEach((nabor, index) => {
+                            const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+                            if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
+                                edgeArr.push([i, j])
+                            }
+                        })
+                    }
+                }
+            }
+            edgeArr.forEach((point, index) => {
+                setWhite(point[0], point[1]);
             })
-          }
         }
-      }
-      edgeArr.forEach((point, index) => {
-        setBlack(point[0], point[1]);
-      })
+        for (let k = 0; k < 2; k++) {
+            let edgeArr = [];
+            for (let i = 0; i < height; i += 1) {
+                for (let j = 0; j < width / 4; j += 1) {
+                    //对黑点操作
+                    const nabors = [
+                        [[-1, -1], [1, 1]], [[-1, -1], [2, 2]], [[-1, -1], [3, 3]], ///
+                        [[-1, 1], [1, -1]], [[-1, 1], [2, -2]], [[-1, 1], [3, -3]], //\
+                    ]
+                    if (isBlack(i, j)) {
+                        nabors.forEach((nabor, index) => {
+                            const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+                            if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
+                                edgeArr.push([i, j])
+                            }
+                        })
+                    }
+                }
+            }
+            edgeArr.forEach((point, index) => {
+                setWhite(point[0], point[1]);
+            })
+        }
+
+        //修补缝隙
+        for (let k = 0; k < 1; k++) {
+            let edgeArr = [];
+            for (let i = 0; i < height; i += 1) {
+                for (let j = 0; j < width; j += 1) {
+                    //对黑点操作
+                    const nabors = [[[-1, 0], [1, 0]], [[0, -1], [0, 1]],]
+                    if (!isBlack(i, j)) {
+                        nabors.forEach((nabor, index) => {
+                            const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+                            if (isBlack(i + i_p, j + j_p) && isBlack(i + i_q, j + j_q)) {
+                                edgeArr.push([i, j])
+                            }
+                        })
+                    }
+                }
+            }
+            edgeArr.forEach((point, index) => {
+                setBlack(point[0], point[1]);
+            })
+        }
+
+        const myimg3 = new ImageData(imageData, width, height)
+        ctx3.putImageData(myimg3, 0, 0, 0, 0, width, height);
+
+        const dataURL = canvas3.toDataURL("image/jpeg");
+        Tesseract.recognize(dataURL, 'eng', { logger: m => console.log(m) })
+            .then(({ data: { text } }) => {
+                let code = text;
+                code = code.replace(/(<)|(¢)/g, 'c');
+                code = code.replace(/(£)|(€)/g, 'f');
+
+                code = code.replace(/[^a-zA-Z0-9]/, '')
+
+                code = code.match(/[a-zA-Z0-9]{1,}/)[0]
+                code = code.replace(/(s5)|(5s)|(S5)|(5S)/g, '5');
+                code = code.replace(/(s)|(S)/g, '5');
+                code = code.replace(/(fF)|(Ff)/g, 'f');
+                code = code.replace(/(t)|(1)/g, 'f');
+                code = code.replace(/(b6)|(6b)/g, '6');
+                code = code.replace(/G|B/g, '6');
+                code = code.replace(/(Qq)|(qQ)|(9q)|(q9)/g, 'g');
+                code = code.replace(/(Q)|(q)|(9)/g, 'g');
+                code = code.replace(/(A)/g, '4');
+                code = code.replace(/h|H/g, 'b');
+                code = code.replace(/(l|I)/g, '7');
+                code = code.replace(/T/g, '7');
+
+                code = code.substr(-4)
+                console.log(text)
+                alert(`${text}-->   ${code}`)
+            });
     }
-
-    const myimg3 = new ImageData(imageData, width, height)
-    ctx3.putImageData(myimg3, 0, 0, 0, 0, width, height);
-
-    const dataURL = canvas3.toDataURL("image/jpeg");
-    Tesseract.recognize(dataURL, 'eng', { logger: m => console.log(m) })
-      .then(({ data: { text } }) => {
-        let code = text;
-        code = code.replace(/(<)|(¢)/g, 'c');
-        code = code.replace(/(£)|(€)/g, 'f');
-
-        code = code.replace(/[^a-zA-Z0-9]/, '')
-
-        code = code.match(/[a-zA-Z0-9]{1,}/)[0]
-        code = code.replace(/(s5)|(5s)|(S5)|(5S)/g, '5');
-        code = code.replace(/(s)|(S)/g, '5');
-        code = code.replace(/(fF)|(Ff)/g, 'f');
-        code = code.replace(/(t)|(1)/g, 'f');
-        code = code.replace(/(b6)|(6b)/g, '6');
-        code = code.replace(/G|B/g, '6');
-        code = code.replace(/(Qq)|(qQ)|(9q)|(q9)/g, 'g');
-        code = code.replace(/(Q)|(q)|(9)/g, 'g');
-        code = code.replace(/(A)/g, '4');
-        code = code.replace(/h|H/g, 'b');
-        code = code.replace(/(l|I)/g, '7');
-        code = code.replace(/T/g, '7');
-
-        code = code.substr(-4)
-        console.log(text)
-        alert(`${text}-->   ${code}`)
-      });
-  }
 </script>
 </body>
 

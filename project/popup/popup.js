@@ -15,6 +15,7 @@ const link_cet = document.getElementById("link_cet");
 const link_cg = document.getElementById("link_cg");
 const link_mooc = document.getElementById("link_mooc");
 const link_sso = document.getElementById("link_sso");
+const link_pigai = document.getElementById("link_pigai");
 
 const footer = document.getElementById("wwww");
 
@@ -34,6 +35,7 @@ const linkData = [
   { key: link_cg, src: "https://tyapp.chingo.cn/cgapp/" },
   { key: link_mooc, src: "https://www.icourse163.org/" },
   { key: link_sso, src: "https://sso.tju.edu.cn/cas/login" },
+  { key: link_pigai, src: "http://www.pigai.org/" },
 ];
 
 const seat_s1 = document.getElementById("seat-s1");
@@ -45,9 +47,11 @@ const classes_s3 = document.getElementById("classes-s3");
 const classes_s4 = document.getElementById("classes-s4");
 const classes_s5 = document.getElementById("classes-s5");
 const classes_s6 = document.getElementById("classes-s6");
+const classes_s7 = document.getElementById("classes-s7");
 const twt_s1 = document.getElementById("twt-s1");
 const mooc_s1 = document.getElementById("mooc-s1");
 const sso_s1 = document.getElementById("sso-s1");
+const pigai_s1 = document.getElementById("pigai-s1");
 
 const switchData = [
   { key: seat_s1, fx: "seat_grab" },
@@ -58,8 +62,10 @@ const switchData = [
   { key: classes_s4, fx: "checkClassInfo" },
   { key: classes_s5, fx: "showWeightedScore" },
   { key: classes_s6, fx: "classes_clickHeart" },
+  { key: classes_s7, fx: "classes_expElect" },
   { key: mooc_s1, fx: "mook_jumpQuestion" },
   { key: sso_s1, fx: "sso_fixForm" },
+  { key: pigai_s1, fx: "pigai_paste" },
 ];
 
 //有可能要在不同中操作定时器 搞成全局变量
@@ -169,12 +175,20 @@ function init() {
           switch: "classes-s6",
           value: 1,
         },
+        classes_expElect: {
+          switch: "classes-s7",
+          value: 1,
+        },
         mook_jumpQuestion: {
           switch: "mook-s1",
           value: 0,
         },
         sso_fixForm: {
-          switch: "sso_s1",
+          switch: "sso-s1",
+          value: 0,
+        },
+        pigai_paste: {
+          switch: "pigai-s1",
           value: 0,
         },
       };

@@ -22,7 +22,8 @@ function kissTJU() {
       case "sso.tju.edu.cn":
         handle_sso(kissTJUConfig);
         break;
-      case "":
+      case "www.pigai.org":
+        handle_pigai(kissTJUConfig);
         break;
       case "":
         break;
@@ -46,7 +47,7 @@ function handle_classes(config) {
   if ($host !== "classes.tju.edu.cn") {
     return;
   }
-  const { autoEvaluate, myplan_fixMeterHead, removeFooter, checkClassInfo, showWeightedScore, classes_clickHeart } = config;
+  const { autoEvaluate, myplan_fixMeterHead, removeFooter, checkClassInfo, showWeightedScore, classes_clickHeart, classes_expElect } = config;
 
   if (autoEvaluate && autoEvaluate.value) {
     fx_autoEvaluate();
@@ -68,6 +69,9 @@ function handle_classes(config) {
   }
   if (classes_clickHeart && classes_clickHeart.value) {
     fx_classes_clickHeart();
+  }
+  if (classes_expElect && classes_expElect.value) {
+    fx_classes_expElect();
   }
 }
 
@@ -154,6 +158,17 @@ function handle_sso(config) {
   const { sso_fixForm } = config;
   if (sso_fixForm && sso_fixForm.value) {
     fx_sso_fixForm();
+  }
+}
+
+function handle_pigai(config) {
+  console.log("fx r: handle_pigai");
+  if ($host !== "www.pigai.org") {
+    return;
+  }
+  const { pigai_paste } = config;
+  if (pigai_paste && pigai_paste.value) {
+    fx_pigai_paste();
   }
 }
 
@@ -283,7 +298,7 @@ function fx_checkClassInfo() {
 }
 
 /**
- * 成绩界面计算加权分数几点
+ * 成绩界面计算加权分数绩点
  */
 function fx_showWeightedScore() {
   console.log("fx r: showWeightedScore");
@@ -474,11 +489,101 @@ function fx_classes_clickHeart() {
 }
 
 /**
+ * 实验课选课功能增强 一键过滤 一键排序等
+ */
+function fx_classes_expElect() {
+  console.log("fx r: fx_classes_expElect");
+  let timer = setInterval(function () {
+    if (document.getElementById("current-bar")?.children[1]?.textContent.match("实验课选课")) {
+      inject();
+      // clearInterval(timer);
+    }
+  }, 500);
+  function inject() {
+    const rootWindow = window;
+    const frames = rootWindow.document.querySelector("#iframeMain");
+    const ifameWindow = window.frames[frames.name];
+
+    const tbody = ifameWindow.document.querySelector("tbody #lessonItemList_data");
+    const tbar = ifameWindow.document.querySelector("#lessonItemList_bar1");
+
+    if (!(tbody && tbar)) {
+      return;
+    }
+    const len = tbody.children.length;
+
+    //外面套timer 不重复注入
+    let isinjected = tbar.children[0].textContent == "kissTJU";
+    if (isinjected) {
+      return;
+    } else {
+      tbar.children[0].textContent = "kissTJU";
+    }
+
+    //过滤器 只看未满
+    const btn_select = document.createElement("button");
+    btn_select.textContent = "只看未满";
+    btn_select.onclick = () => {
+      for (let i = 0; i < len; i++) {
+        const tr = tbody.children[i];
+        let a = tr.children[11].textContent - 0; //选课人数
+        let b = tr.children[12].textContent - 0; //计划人数
+        if (a >= b) {
+          tr.style.display = "none";
+        }
+      }
+    };
+    tbar.append(btn_select);
+
+    //要素过滤
+    const btn_filter = document.createElement("button");
+    btn_filter.textContent = "要素过滤";
+    btn_filter.onclick = () => {
+      btn_filter.textContent = "要素过滤已开启";
+      for (let i = 0; i < len; i++) {
+        const tr = tbody.children[i];
+        const len1 = tr.children.length;
+        //tr的第一个是一个勾选框 最后一个是选课按钮 不动
+        for (let j = 1; j < len1 - 1; j++) {
+          const td = tr.children[j];
+          const text = td.textContent;
+
+          td.onclick = () => {
+            tr.children[0].children[0].checked = "false"; //设置勾选框避免选中消失的tr
+            const filterKey = document.createElement("button"); //顶部展示过滤的关键词
+            filterKey.textContent = text;
+            filterKey.onclick = () => {
+              for (let k = 0; k < len; k++) {
+                const trk = tbody.children[k];
+                const tdkj = trk.children[j];
+                if (tdkj.textContent === text) {
+                  trk.style.display = ""; //复现匹配的tr
+                }
+              }
+              filterKey.style.display = "none"; //隐藏该按钮
+            };
+            tbar.append(filterKey);
+            for (let k = 0; k < len; k++) {
+              const trk = tbody.children[k];
+              const tdkj = trk.children[j];
+              if (tdkj.textContent === text) {
+                trk.style.display = "none"; //消去匹配的tr
+              }
+            }
+          };
+        }
+      }
+    };
+    tbar.append(btn_filter);
+  }
+}
+/**
  * MOOC看视频跳题
  */
 function fx_mook_jumpQuestion() {
   console.log("fx r: fx_mook_jumpQuestion");
-  function jnject() {
+  inject();
+  function inject() {
     (function () {
       setInterval(function () {
         let question = document.querySelector(".u-btn.u-btn-default.cont.j-continue");
@@ -924,5 +1029,25 @@ function fx_sso_fixForm() {
         }
       });
     };
+  }
+}
+
+/**
+ * 批改网解除粘贴限制
+ */
+function fx_pigai_paste() {
+  console.log("fx r: fx_pigai_paste");
+  if (document.getElementById("contents")) {
+    inject();
+  }
+  function inject() {
+    const inputArea = document.getElementById("contents");
+    inputArea.addEventListener("paste", function (e) {
+      const str = inputArea.value;
+      const clipdata = e.clipboardData || window.clipboardData;
+      const clipStr = clipdata.getData("text/plain");
+      console.log("主动粘贴", clipStr);
+      inputArea.value = str + clipStr;
+    });
   }
 }

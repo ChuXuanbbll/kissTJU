@@ -26,7 +26,8 @@
         "https://cet.neea.edu.cn/*",
         "https://tyapp.chingo.cn/cgapp/*",
         "https://www.icourse163.org/",
-        "https://sso.tju.edu.cn/*"
+        "https://sso.tju.edu.cn/*",
+        "http://www.pigai.org/*"
       ],
       "js": ["tesseract.js", "chuxuan.js"],
       "run_at": "document_idle"
