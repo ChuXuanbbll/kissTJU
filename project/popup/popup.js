@@ -48,6 +48,7 @@ const classes_s4 = document.getElementById("classes-s4");
 const classes_s5 = document.getElementById("classes-s5");
 const classes_s6 = document.getElementById("classes-s6");
 const classes_s7 = document.getElementById("classes-s7");
+const classes_s8 = document.getElementById("classes-s8");
 const twt_s1 = document.getElementById("twt-s1");
 const mooc_s1 = document.getElementById("mooc-s1");
 const sso_s1 = document.getElementById("sso-s1");
@@ -63,6 +64,7 @@ const switchData = [
   { key: classes_s5, fx: "showWeightedScore" },
   { key: classes_s6, fx: "classes_clickHeart" },
   { key: classes_s7, fx: "classes_expElect" },
+  { key: classes_s8, fx: "classes_ifameToolbar" },
   { key: mooc_s1, fx: "mook_jumpQuestion" },
   { key: sso_s1, fx: "sso_fixForm" },
   { key: pigai_s1, fx: "pigai_paste" },
@@ -178,6 +180,10 @@ function init() {
         classes_expElect: {
           switch: "classes-s7",
           value: 1,
+        },
+        classes_ifameToolbar: {
+          switch: "classes-s8",
+          value: 0,
         },
         mook_jumpQuestion: {
           switch: "mook-s1",

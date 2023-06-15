@@ -47,7 +47,16 @@ function handle_classes(config) {
   if ($host !== "classes.tju.edu.cn") {
     return;
   }
-  const { autoEvaluate, myplan_fixMeterHead, removeFooter, checkClassInfo, showWeightedScore, classes_clickHeart, classes_expElect } = config;
+  const {
+    autoEvaluate,
+    myplan_fixMeterHead,
+    removeFooter,
+    checkClassInfo,
+    showWeightedScore,
+    classes_clickHeart,
+    classes_expElect,
+    classes_ifameToolbar,
+  } = config;
 
   if (autoEvaluate && autoEvaluate.value) {
     fx_autoEvaluate();
@@ -72,6 +81,9 @@ function handle_classes(config) {
   }
   if (classes_expElect && classes_expElect.value) {
     fx_classes_expElect();
+  }
+  if (classes_ifameToolbar && classes_ifameToolbar.value) {
+    fx_classes_ifameToolbar();
   }
 }
 
@@ -175,32 +187,55 @@ function handle_pigai(config) {
 /********************工具函数**************************/
 /**
  * 自动评教
- * 由于没有评教界面参考，不知效果
  */
 function fx_autoEvaluate() {
   console.log("fx r: autoEvaluate");
   let timer = setInterval(function () {
-    if (document.getElementById("current-bar")?.children[1]?.textContent.match("学生评教")) {
-      inject();
-      // clearInterval(timer);
+    if (
+      //有两个入口进入评教界面 其中从成绩界面打开的评教会新建标签页
+      window.location.pathname === "/eams/quality/stdEvaluate!answer.action"
+    ) {
+      inject(window);
+    } else if (document.getElementById("current-bar")?.children[1]?.textContent.match("学生评教")) {
+      const rootWindow = window;
+      const frames = rootWindow.document.querySelector("#iframeMain");
+      const ifameWindow = window.frames[frames.name];
+
+      inject(ifameWindow);
     }
   }, 500);
-  function inject() {
-    const options = document.getElementsByClassName("option-item");
-    for (let i = 0; i < options.length; i++) {
-      let element = options[i];
-      let text = element.children[1].textContent;
-      if (text === "非常满意" || text === "非常同意") {
-        element.children[0].click();
+
+  function inject(mWindow) {
+    if (mWindow.is_inj_autoEvaluate) return;
+
+    let head = mWindow.document?.querySelector("#head");
+    if (!head) return;
+    let autoEvalBtn = document.createElement("button");
+    autoEvalBtn.textContent = "自动评教";
+
+    autoEvalBtn.onclick = () => {
+      //选择题
+      const options = mWindow.document?.getElementsByClassName("option-item");
+      for (let i = 0; i < options.length; i++) {
+        let element = options[i];
+        let text = element.children[1].textContent;
+        if (text === "非常满意" || text === "非常同意") {
+          element.children[0].click();
+        }
       }
-    }
-    let completions = document.getElementsByClassName("answer answer-textarea");
-    for (let i = 0; i < completions.length; i++) {
-      let element = completions[i];
-      element.textContent = "承蒙赐教，感激涕零";
-    }
-    let subBtn = document.getElementById("sub");
-    subBtn.click();
+      //填空题
+      let completions = mWindow.document?.getElementsByClassName("answer answer-textarea");
+      for (let i = 0; i < completions.length; i++) {
+        let element = completions[i];
+        element.textContent = "承蒙赐教，感激涕零";
+      }
+      //提交
+      let subBtn = mWindow.document?.getElementById("sub");
+      subBtn && subBtn.click();
+    };
+    head.append(autoEvalBtn);
+
+    mWindow.is_inj_autoEvaluate = true;
   }
 }
 
@@ -279,20 +314,28 @@ function fx_checkClassInfo() {
       const lessonId = uselessUrl.match(/[\d]{1,}/); //这个id是系统隐藏id，不是课程序号也不是课程代码
       const lessonCode = tr.children[2].innerHTML; //课程代码
       const lessonName = tr.children[3].innerHTML; //课程名称
-      tr.children[2].innerHTML = ""; //删除原有的文字
-      tr.children[3].innerHTML = ""; //删除原有的文字
+      const teacherName = tr.children[5].innerHTML; //教师名称
       //课程详情
       const lessonInfoBtn = document.createElement("a");
       lessonInfoBtn.target = "_blank"; //必须新窗口打开不然出bug
       lessonInfoBtn.href = `/eams/stdSyllabus!info.action?lesson.id=${lessonId}`; //查看课程详情
       lessonInfoBtn.innerHTML = lessonCode;
+      tr.children[2].innerHTML = ""; //删除原有的文字
       tr.children[2].appendChild(lessonInfoBtn); //添加的标签
       //课程大纲
       const lessonProgBtn = document.createElement("a");
       lessonProgBtn.target = "_blank"; //必须新窗口打开不然出bug
       lessonProgBtn.href = `http://classes.tju.edu.cn/eams/stdSyllabus!syllabusInfo.action?lesson.id=${lessonId}`;
       lessonProgBtn.innerHTML = lessonName;
+      tr.children[3].innerHTML = ""; //删除原有的文字
       tr.children[3].appendChild(lessonProgBtn); //添加的标签
+      //课程评教 id原理未知
+      // const lessonEvalBtn = document.createElement("a");
+      // lessonEvalBtn.target = "_blank"; //必须新窗口打开不然出bug
+      // lessonEvalBtn.href = `http://classes.tju.edu.cn/eams/quality/stdEvaluate!answer.action?evaluationLesson.id=${lessonId}`;
+      // lessonEvalBtn.innerHTML = teacherName;
+      // tr.children[5].innerHTML = ""; //删除原有的文字
+      // tr.children[5].appendChild(lessonEvalBtn); //添加的标签
     }
   }
 }
@@ -312,6 +355,8 @@ function fx_showWeightedScore() {
     const rootWindow = window;
     const frames = rootWindow.document.querySelector("#iframeMain");
     const ifameWindow = window.frames[frames.name];
+
+    if (ifameWindow.is_inj_fx_showWeightedScore) return;
 
     const tbody = ifameWindow.document.querySelector("#semesterGrade .gridtable tbody");
     if (!tbody) {
@@ -336,9 +381,10 @@ function fx_showWeightedScore() {
         if (isRemake) {
           continue;
         }
-        let credit = tr.children[5].textContent - 0;
-        let score = tr.children[6].textContent - 0;
-        let GPA = tr.children[7].textContent - 0;
+        //未评教的情况会没有5、6、7列 考虑只计算显示了成绩的科目
+        let credit = tr.children[5]?.textContent - 0;
+        let score = tr.children[6]?.textContent - 0;
+        let GPA = tr.children[7]?.textContent - 0;
         if (isNaN(credit + score + GPA)) {
           continue; //成绩可能是P
         }
@@ -358,6 +404,8 @@ function fx_showWeightedScore() {
       newTr.children[7].textContent = avgGPA.toFixed(3);
       tbody.append(newTr);
     }
+
+    ifameWindow.is_inj_fx_showWeightedScore = true;
   }
 }
 
@@ -575,6 +623,53 @@ function fx_classes_expElect() {
       }
     };
     tbar.append(btn_filter);
+  }
+}
+
+/**
+ * 添加按钮实现只对ifame套娃网页的操作 如刷新、前进、后退等
+ * 但是由于原网站开发逻辑混乱 此插件跳起来也不丝滑 除非每次切换都储存一下(暂未实现) 而且难以实现返回不重载
+ */
+function fx_classes_ifameToolbar() {
+  console.log("fx r: fx_classes_ifameToolbar");
+  let timer = setInterval(function () {
+    if (window.location.pathname === "/eams/homeExt.action") {
+      inject();
+    }
+  }, 500);
+  function inject() {
+    const currentBar = document.querySelector("#current-bar");
+    if (currentBar?.children[0].textContent === "kisstju") {
+      return; //防止注入多次
+    } else if (currentBar) {
+      currentBar.children[0].textContent = "kisstju";
+    }
+
+    const rootWindow = window;
+    const frames = rootWindow.document.querySelector("#iframeMain");
+    const ifameWindow = window.frames[frames.name];
+
+    const ifameReloadBtn = document.createElement("button");
+    ifameReloadBtn.style.marginLeft = "100px";
+    ifameReloadBtn.textContent = "↻刷新子网页";
+    ifameReloadBtn.onclick = () => {
+      ifameWindow.location.reload();
+    };
+    currentBar.append(ifameReloadBtn);
+
+    const ifameBackBtn = document.createElement("button");
+    ifameBackBtn.textContent = "←子网页后退";
+    ifameBackBtn.onclick = () => {
+      ifameWindow.history.back();
+    };
+    currentBar.append(ifameBackBtn);
+
+    const ifameForwardBtn = document.createElement("button");
+    ifameForwardBtn.textContent = "→子网页前进";
+    ifameForwardBtn.onclick = () => {
+      ifameWindow.history.forward();
+    };
+    currentBar.append(ifameForwardBtn);
   }
 }
 /**
