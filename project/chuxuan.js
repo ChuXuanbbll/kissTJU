@@ -56,6 +56,7 @@ function handle_classes(config) {
     classes_clickHeart,
     classes_expElect,
     classes_ifameToolbar,
+    classes_timetablePreview,
   } = config;
 
   if (autoEvaluate && autoEvaluate.value) {
@@ -85,6 +86,9 @@ function handle_classes(config) {
   if (classes_ifameToolbar && classes_ifameToolbar.value) {
     fx_classes_ifameToolbar();
   }
+  if (classes_timetablePreview && classes_timetablePreview.value) {
+    fx_classes_timetablePreview();
+  }
 }
 
 function handle_seat(config) {
@@ -112,7 +116,7 @@ function handle_mooc(config) {
   }
 }
 
-function handle_sso(config) {
+function handle_sso_old_abandon(config) {
   console.log("fx r: handle_sso");
   if ($host !== "sso.tju.edu.cn") {
     return;
@@ -170,6 +174,20 @@ function handle_sso(config) {
   const { sso_fixForm } = config;
   if (sso_fixForm && sso_fixForm.value) {
     fx_sso_fixForm();
+  }
+}
+
+function handle_sso(config) {
+  console.log("fx r: handle_sso");
+  if ($host !== "sso.tju.edu.cn") {
+    return;
+  }
+  const { sso_genshinStart, sso_setRobot } = config;
+  if (sso_genshinStart && sso_genshinStart.value) {
+    fx_sso_genshinStart();
+  }
+  if (sso_setRobot && sso_setRobot.value) {
+    fx_sso_setRobot(sso_setRobot.value);
   }
 }
 
@@ -259,6 +277,8 @@ function fx_myplan_fixMeterHead() {
     const ifameWindow = window.frames[frames.name];
     // const thead = ifameWindow.document.querySelector("#planInfoTable223191 thead");
     const thead = ifameWindow.document.querySelector(".planTable thead");
+    if (!thead) return;
+    if (ifameWindow.is_inj_fx_myplan_fixMeterHead) return;
 
     const theadTop = thead.getBoundingClientRect().top; //thead表头相对于iframe内window的高度offset
     let offset = framesTop + theadTop; //总高度offset
@@ -275,6 +295,7 @@ function fx_myplan_fixMeterHead() {
         thead.style.top = scrollY - offset + "px";
       }
     });
+    ifameWindow.is_inj_fx_myplan_fixMeterHead = true;
   }
 }
 
@@ -633,7 +654,8 @@ function fx_classes_expElect() {
 function fx_classes_ifameToolbar() {
   console.log("fx r: fx_classes_ifameToolbar");
   let timer = setInterval(function () {
-    if (window.location.pathname === "/eams/homeExt.action") {
+    if (~window.location.pathname.indexOf("/eams/homeExt.action")) {
+      //pathname可能是/eams/homeExt.action;jsessionid=1919810ZWXWCNM1114514.std4#不能===
       inject();
     }
   }, 500);
@@ -672,6 +694,45 @@ function fx_classes_ifameToolbar() {
     currentBar.append(ifameForwardBtn);
   }
 }
+
+/**
+ * 从全校开课查询跳到课程排表
+ * 可查看预排课表，但未必是最终课表
+ */
+function fx_classes_timetablePreview() {
+  console.log("fx r: fx_classes_timetablePreview");
+  let timer = setInterval(function () {
+    if (document.getElementById("current-bar")?.children[1]?.textContent.match("全校开课查询")) {
+      inject();
+      // clearInterval(timer);
+    }
+  }, 500);
+
+  function inject() {
+    const rootWindow = window;
+    const frames = rootWindow.document.querySelector("#iframeMain");
+    const ifameWindow = window.frames[frames.name];
+
+    const tbody = ifameWindow.document.querySelector("#taskListForm .gridtable tbody");
+    if (!tbody) {
+      return;
+    }
+    for (let i = 0; i < tbody.children.length; i++) {
+      const tr = tbody.children[i];
+      const lessonNum = tr.children[1].innerHTML; //课程序号
+      const uselessUrl = tr.querySelector("td a").href; //e.g. "/eams/stdSyllabus!info.action?lesson.id=433941"
+      const lessonId = uselessUrl.match(/[\d]{1,}/); //这个id是系统隐藏id，不是课程序号也不是课程代码
+      //查看课程排班
+      const lessonTimetableBtn = document.createElement("a");
+      lessonTimetableBtn.target = "_blank"; //必须新窗口打开不然出bug
+      lessonTimetableBtn.href = `http://classes.tju.edu.cn/eams/courseTableForStd!taskTable.action?lesson.id=${lessonId}`; //查看课程详情
+      lessonTimetableBtn.innerHTML = lessonNum;
+      tr.children[1].innerHTML = ""; //删除原有的文字
+      tr.children[1].appendChild(lessonTimetableBtn); //添加的标签
+    }
+  }
+}
+
 /**
  * MOOC看视频跳题
  */
@@ -797,333 +858,512 @@ function fx_common_clickHeart() {
 
 /**
  * 登录界面自动填验证码或信息
+ * 新版已弃用！！！
  */
-function fx_sso_fixForm() {
-  console.log("fx r: fx_sso_fixForm");
+// function fx_sso_fixForm() {
+//   console.log("fx r: fx_sso_fixForm");
 
-  // let timer = setInterval(function () {
-  if (document.getElementById("captcha") && document.getElementById("captcha").value === "") {
-    inject();
-    // clearInterval(timer);
-  }
-  // }, 1000);
+//   // let timer = setInterval(function () {
+//   if (document.getElementById("captcha") && document.getElementById("captcha").value === "") {
+//     inject();
+//     // clearInterval(timer);
+//   }
+//   // }, 1000);
 
+//   function inject() {
+//     const canvas = document.createElement("canvas");
+//     document.body.append(canvas);
+//     const img = document.querySelector("#captcha_img");
+//     // img.style.scale = 1.44;
+//     img.setAttribute("crossOrigin", "Anonymous");
+//     img.setAttribute("referrerpolicy", "no-referrer");
+//     img.onload = () => {
+//       let { width, height } = img;
+//       let scale = 1.44;
+//       width *= scale; //乘1.44使其与开发环境宽高相同
+//       height *= scale;
+//       canvas.width = width;
+//       canvas.height = height;
+
+//       const ctx = canvas.getContext("2d");
+//       ctx.drawImage(img, 0, 0, width, height, 0, 0, width, height);
+//       let imageData = ctx.getImageData(0, 0, width, height).data;
+
+//       //擦边界
+//       //这个点黑不黑
+//       function isBlack(i, j) {
+//         if (i < 0 || j < 0) {
+//           return null;
+//         }
+//         const r = imageData[4 * (i * width + j) + 0];
+//         const g = imageData[4 * (i * width + j) + 1];
+//         const b = imageData[4 * (i * width + j) + 2];
+//         const a = imageData[4 * (i * width + j) + 3];
+//         //阈值
+//         if (r + g + b < 500) {
+//           return true;
+//         } else {
+//           return false;
+//         }
+//       }
+//       //让这个点变成白色
+//       function setWhite(i, j) {
+//         if (i < 0 || j < 0) {
+//           return null;
+//         }
+//         imageData[4 * (i * width + j) + 0] = 255;
+//         imageData[4 * (i * width + j) + 1] = 255;
+//         imageData[4 * (i * width + j) + 2] = 255;
+//         imageData[4 * (i * width + j) + 3] = 255;
+//       }
+//       //让这个点变成黑色
+//       function setBlack(i, j) {
+//         imageData[4 * (i * width + j) + 0] = 0;
+//         imageData[4 * (i * width + j) + 1] = 0;
+//         imageData[4 * (i * width + j) + 2] = 0;
+//         imageData[4 * (i * width + j) + 3] = 255;
+//       }
+//       // 二值化
+//       for (let i = 0; i < height; i += 1) {
+//         for (let j = 0; j < width; j += 1) {
+//           if (!isBlack(i, j)) {
+//             imageData[4 * (i * width + j) + 0] = 255;
+//             imageData[4 * (i * width + j) + 1] = 255;
+//             imageData[4 * (i * width + j) + 2] = 255;
+//             imageData[4 * (i * width + j) + 3] = 255;
+//           } else {
+//             imageData[4 * (i * width + j) + 0] = 0;
+//             imageData[4 * (i * width + j) + 1] = 0;
+//             imageData[4 * (i * width + j) + 2] = 0;
+//             imageData[4 * (i * width + j) + 3] = 255;
+//           }
+//         }
+//       }
+//       //左边28宽必是干扰
+//       for (let i = 0; i < height; i += 1) {
+//         for (let j = 0; j < 28; j += 1) {
+//           setWhite(i, j);
+//         }
+//       }
+//       //粗略填充
+//       for (let k = 0; k < 1; k++) {
+//         let edgeArr = [];
+//         for (let i = 0; i < height; i += 1) {
+//           for (let j = 0; j < width; j += 1) {
+//             const p = isBlack(i, j);
+//             const nabor = [
+//               [-1, 0],
+//               [-1, 1],
+//               [0, 1],
+//               [1, 1],
+//               [1, 0],
+//               [1, -1],
+//               [0, -1],
+//               [-1, -1],
+//             ];
+//             let naborNum = 0;
+//             nabor.forEach((direction, index) => {
+//               const [i_p, j_p] = [i + direction[0], j + direction[1]];
+//               const p_p = isBlack(i_p, j_p);
+//               if (p_p) {
+//                 naborNum += 1;
+//               }
+//             });
+//             if (naborNum > 6) {
+//               edgeArr.push([i, j]);
+//             }
+//           }
+//         }
+//         edgeArr.forEach((point, index) => {
+//           setBlack(point[0], point[1]);
+//         });
+//       }
+
+//       //去掉孤零零点 并平滑边界
+//       for (let k = 0; k < 2; k++) {
+//         let edgeArr = [];
+//         for (let i = 0; i < height; i += 1) {
+//           for (let j = 0; j < width; j += 1) {
+//             const p = isBlack(i, j);
+//             const nabor = [
+//               [-1, 0],
+//               [-1, 1],
+//               [0, 1],
+//               [1, 1],
+//               [1, 0],
+//               [1, -1],
+//               [0, -1],
+//               [-1, -1],
+//             ];
+//             let naborNum = 0;
+//             nabor.forEach((direction, index) => {
+//               const [i_p, j_p] = [i + direction[0], j + direction[1]];
+//               const p_p = isBlack(i_p, j_p);
+//               if (p_p) {
+//                 naborNum += 1;
+//               }
+//             });
+//             if (naborNum < 4) {
+//               edgeArr.push([i, j]);
+//             }
+//           }
+//         }
+//         edgeArr.forEach((point, index) => {
+//           setWhite(point[0], point[1]);
+//         });
+//       }
+
+//       //根据周围点判断这个点所在的图形是否为干扰线，干扰线比较细
+//       for (let k = 0; k < 4; k++) {
+//         let edgeArr = [];
+//         for (let i = 0; i < height; i += 1) {
+//           for (let j = 0; j < width; j += 1) {
+//             //对黑点操作
+//             const nabors = [
+//               [
+//                 [-1, 0],
+//                 [1, 0],
+//               ],
+//               [
+//                 [-1, 0],
+//                 [2, 0],
+//               ],
+//               [
+//                 [-1, 0],
+//                 [3, 0],
+//               ],
+//               [
+//                 [-1, 0],
+//                 [4, 0],
+//               ], //-
+//               [
+//                 [0, -1],
+//                 [0, 1],
+//               ],
+//               [
+//                 [0, -1],
+//                 [0, 2],
+//               ],
+//               [
+//                 [0, -1],
+//                 [0, 3],
+//               ],
+//               [
+//                 [0, -1],
+//                 [0, 4],
+//               ], //|
+//             ];
+//             if (isBlack(i, j)) {
+//               nabors.forEach((nabor, index) => {
+//                 const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+//                 if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
+//                   edgeArr.push([i, j]);
+//                 }
+//               });
+//             }
+//           }
+//         }
+//         edgeArr.forEach((point, index) => {
+//           setWhite(point[0], point[1]);
+//         });
+//       }
+//       for (let k = 0; k < 2; k++) {
+//         let edgeArr = [];
+//         for (let i = 0; i < height; i += 1) {
+//           for (let j = 0; j < width / 4; j += 1) {
+//             //对黑点操作
+//             const nabors = [
+//               [
+//                 [-1, -1],
+//                 [1, 1],
+//               ],
+//               [
+//                 [-1, -1],
+//                 [2, 2],
+//               ],
+//               [
+//                 [-1, -1],
+//                 [3, 3],
+//               ], ///
+//               [
+//                 [-1, 1],
+//                 [1, -1],
+//               ],
+//               [
+//                 [-1, 1],
+//                 [2, -2],
+//               ],
+//               [
+//                 [-1, 1],
+//                 [3, -3],
+//               ], //\
+//             ];
+//             if (isBlack(i, j)) {
+//               nabors.forEach((nabor, index) => {
+//                 const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+//                 if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
+//                   edgeArr.push([i, j]);
+//                 }
+//               });
+//             }
+//           }
+//         }
+//         edgeArr.forEach((point, index) => {
+//           setWhite(point[0], point[1]);
+//         });
+//       }
+
+//       //修补缝隙
+//       for (let k = 0; k < 1; k++) {
+//         let edgeArr = [];
+//         for (let i = 0; i < height; i += 1) {
+//           for (let j = 0; j < width; j += 1) {
+//             //对黑点操作
+//             const nabors = [
+//               [
+//                 [-1, 0],
+//                 [1, 0],
+//               ],
+//               [
+//                 [0, -1],
+//                 [0, 1],
+//               ],
+//             ];
+//             if (!isBlack(i, j)) {
+//               nabors.forEach((nabor, index) => {
+//                 const [[i_p, j_p], [i_q, j_q]] = nabor;
+
+//                 if (isBlack(i + i_p, j + j_p) && isBlack(i + i_q, j + j_q)) {
+//                   edgeArr.push([i, j]);
+//                 }
+//               });
+//             }
+//           }
+//         }
+//         edgeArr.forEach((point, index) => {
+//           setBlack(point[0], point[1]);
+//         });
+//       }
+
+//       const myimg = new ImageData(imageData, width, height);
+//       ctx.putImageData(myimg, 0, 0, 0, 0, width, height);
+
+//       const dataURL = canvas.toDataURL("image/jpeg");
+//       Tesseract.recognize(dataURL, "eng", { logger: (m) => {} }).then(({ data: { text } }) => {
+//         let code = text;
+//         code = code.replace(/(<c)|(¢c)/g, "c");
+//         code = code.replace(/(<)|(¢)/g, "c");
+//         code = code.replace(/(£)|(€)/g, "f");
+
+//         code = code.replace(/[^a-zA-Z0-9]/, "");
+
+//         code = code.match(/[a-zA-Z0-9]{1,}/)[0];
+//         code = code.replace(/(s5)|(5s)|(S5)|(5S)/g, "5");
+//         code = code.replace(/(s)|(S)/g, "5");
+//         code = code.replace(/(fF)|(Ff)/g, "f");
+//         code = code.replace(/(t)|(1)/g, "f");
+//         code = code.replace(/(b6)|(6b)/g, "6");
+//         code = code.replace(/G|B/g, "6");
+//         code = code.replace(/(Qq)|(qQ)|(9q)|(q9)/g, "g");
+//         code = code.replace(/(Q)|(q)|(9)/g, "g");
+//         code = code.replace(/(A)/g, "4");
+//         code = code.replace(/(bh)/g, "b");
+//         code = code.replace(/h|H/g, "b");
+//         code = code.replace(/(l|I)/g, "");
+//         code = code.replace(/T/g, "7");
+
+//         code = code.substr(-4);
+//         console.log(text, code);
+//         // alert(`${text}--${code}`);
+//         document.getElementById("captcha").value = code;
+//         const hasUsername = document.getElementById("username").value.length;
+//         const hasPswd = document.getElementById("password").value.length;
+//         if (hasUsername && hasPswd) {
+//           document.getElementsByName("submit")[0].removeAttribute("disabled");
+//           document.getElementsByName("submit")[0].click();
+//         }
+//       });
+//     };
+//   }
+// }
+
+/**
+ * 登录验证界面原神启动特效
+ */
+function fx_sso_genshinStart() {
+  console.log("fx r: fx_sso_genshinStart");
+  inject();
   function inject() {
-    const canvas = document.createElement("canvas");
-    document.body.append(canvas);
-    const img = document.querySelector("#captcha_img");
-    // img.style.scale = 1.44;
-    img.setAttribute("crossOrigin", "Anonymous");
-    img.setAttribute("referrerpolicy", "no-referrer");
-    img.onload = () => {
-      let { width, height } = img;
-      let scale = 1.44;
-      width *= scale; //乘1.44使其与开发环境宽高相同
-      height *= scale;
-      canvas.width = width;
-      canvas.height = height;
+    //原神启动！
+    if (!(genshinBGImg && genshinBGVideo && genshinBGMusic)) {
+      console.log("genshin资源损坏");
+      return;
+    }
+    const bg = document.createElement("div");
+    bg.style.width = "100%";
+    bg.style.height = "100%";
+    bg.style.background = "#ffffff";
+    bg.style.left = 0;
+    bg.style.top = 0;
+    bg.style.right = 0;
+    bg.style.bottom = 0;
+    bg.style.position = "absolute";
+    bg.style.zIndex = 999;
 
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height, 0, 0, width, height);
-      let imageData = ctx.getImageData(0, 0, width, height).data;
+    const img = document.createElement("img");
+    img.style.left = 0;
+    img.style.top = 0;
+    img.style.right = 0;
+    img.style.bottom = 0;
+    img.style.margin = "auto";
+    img.style.position = "absolute";
+    img.style.zIndex = 999;
+    img.style.scale = 0.7;
 
-      //擦边界
-      //这个点黑不黑
-      function isBlack(i, j) {
-        if (i < 0 || j < 0) {
-          return null;
+    img.src = genshinBGImg;
+    bg.appendChild(img);
+
+    document.body.appendChild(bg);
+
+    setTimeout(() => {
+      let bgalpha = 1;
+      let interval = setInterval(() => {
+        bgalpha -= 0.01;
+        bg.style.opacity = bgalpha;
+        if (bgalpha <= 0) {
+          bg.style.display = "none";
+          clearInterval(interval);
         }
-        const r = imageData[4 * (i * width + j) + 0];
-        const g = imageData[4 * (i * width + j) + 1];
-        const b = imageData[4 * (i * width + j) + 2];
-        const a = imageData[4 * (i * width + j) + 3];
-        //阈值
-        if (r + g + b < 500) {
-          return true;
-        } else {
-          return false;
+      }, 10);
+    }, 500);
+
+    const loginMainPart = document.querySelector(".login-main-part");
+    loginMainPart.style.opacity = 0;
+    setTimeout(() => {
+      let bgalpha = 0.0;
+      let interval = setInterval(() => {
+        bgalpha += 0.015;
+        loginMainPart.style.opacity = bgalpha;
+        if (bgalpha >= 1) {
+          clearInterval(interval);
         }
-      }
-      //让这个点变成白色
-      function setWhite(i, j) {
-        if (i < 0 || j < 0) {
-          return null;
-        }
-        imageData[4 * (i * width + j) + 0] = 255;
-        imageData[4 * (i * width + j) + 1] = 255;
-        imageData[4 * (i * width + j) + 2] = 255;
-        imageData[4 * (i * width + j) + 3] = 255;
-      }
-      //让这个点变成黑色
-      function setBlack(i, j) {
-        imageData[4 * (i * width + j) + 0] = 0;
-        imageData[4 * (i * width + j) + 1] = 0;
-        imageData[4 * (i * width + j) + 2] = 0;
-        imageData[4 * (i * width + j) + 3] = 255;
-      }
-      // 二值化
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < width; j += 1) {
-          if (!isBlack(i, j)) {
-            imageData[4 * (i * width + j) + 0] = 255;
-            imageData[4 * (i * width + j) + 1] = 255;
-            imageData[4 * (i * width + j) + 2] = 255;
-            imageData[4 * (i * width + j) + 3] = 255;
-          } else {
-            imageData[4 * (i * width + j) + 0] = 0;
-            imageData[4 * (i * width + j) + 1] = 0;
-            imageData[4 * (i * width + j) + 2] = 0;
-            imageData[4 * (i * width + j) + 3] = 255;
+      }, 10);
+    }, 1500);
+
+    //对原UI预处理 去除原来背景 设置透明
+    document.querySelector("#login-background-1").style.backgroundImage = "";
+    const loginBG = document.querySelector("#login-background");
+    loginBG.style.backgroundImage = "";
+    loginBG.style.background = "#00000000";
+
+    //原神背景视频
+    const video = document.createElement("video");
+    video.style.position = "fixed";
+    video.style.top = "50%";
+    video.style.left = "50%";
+    video.style.minWidth = "100%";
+    video.style.minHeight = "100%";
+    video.style.width = "auto";
+    video.style.height = "auto";
+    video.style.zIndex = -100;
+    video.style.transform = "translateX(-50%) translateY(-50%)";
+    video.style.transition = "1s opacity";
+
+    video.src = genshinBGVideo;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true; //必须静音才能自动播放
+    video.playbackRate = 0.75;
+    document.querySelector("#login-background").appendChild(video);
+    video.play();
+
+    //音乐按钮
+    const music = document.createElement("audio");
+    music.style.position = "fixed";
+    music.style.top = 0;
+    music.controls = true;
+    music.src = genshinBGMusic;
+
+    let alpha = 1.0; //音乐按钮的透明度 由于存在多个定时器 放在这做共有变量
+    music.addEventListener("play", function () {
+      (() => {
+        let interval = setInterval(() => {
+          alpha -= 0.05;
+          music.style.opacity = alpha;
+          if (alpha <= 0) {
+            clearInterval(interval);
           }
-        }
-      }
-      //左边28宽必是干扰
-      for (let i = 0; i < height; i += 1) {
-        for (let j = 0; j < 28; j += 1) {
-          setWhite(i, j);
-        }
-      }
-      //粗略填充
-      for (let k = 0; k < 1; k++) {
-        let edgeArr = [];
-        for (let i = 0; i < height; i += 1) {
-          for (let j = 0; j < width; j += 1) {
-            const p = isBlack(i, j);
-            const nabor = [
-              [-1, 0],
-              [-1, 1],
-              [0, 1],
-              [1, 1],
-              [1, 0],
-              [1, -1],
-              [0, -1],
-              [-1, -1],
-            ];
-            let naborNum = 0;
-            nabor.forEach((direction, index) => {
-              const [i_p, j_p] = [i + direction[0], j + direction[1]];
-              const p_p = isBlack(i_p, j_p);
-              if (p_p) {
-                naborNum += 1;
-              }
-            });
-            if (naborNum > 6) {
-              edgeArr.push([i, j]);
+        }, 10);
+      })();
+
+      music.addEventListener("mouseenter", function () {
+        (() => {
+          let interval = setInterval(() => {
+            alpha += 0.05;
+            music.style.opacity = alpha;
+            if (alpha >= 1) {
+              clearInterval(interval);
             }
-          }
-        }
-        edgeArr.forEach((point, index) => {
-          setBlack(point[0], point[1]);
-        });
-      }
-
-      //去掉孤零零点 并平滑边界
-      for (let k = 0; k < 2; k++) {
-        let edgeArr = [];
-        for (let i = 0; i < height; i += 1) {
-          for (let j = 0; j < width; j += 1) {
-            const p = isBlack(i, j);
-            const nabor = [
-              [-1, 0],
-              [-1, 1],
-              [0, 1],
-              [1, 1],
-              [1, 0],
-              [1, -1],
-              [0, -1],
-              [-1, -1],
-            ];
-            let naborNum = 0;
-            nabor.forEach((direction, index) => {
-              const [i_p, j_p] = [i + direction[0], j + direction[1]];
-              const p_p = isBlack(i_p, j_p);
-              if (p_p) {
-                naborNum += 1;
-              }
-            });
-            if (naborNum < 4) {
-              edgeArr.push([i, j]);
-            }
-          }
-        }
-        edgeArr.forEach((point, index) => {
-          setWhite(point[0], point[1]);
-        });
-      }
-
-      //根据周围点判断这个点所在的图形是否为干扰线，干扰线比较细
-      for (let k = 0; k < 4; k++) {
-        let edgeArr = [];
-        for (let i = 0; i < height; i += 1) {
-          for (let j = 0; j < width; j += 1) {
-            //对黑点操作
-            const nabors = [
-              [
-                [-1, 0],
-                [1, 0],
-              ],
-              [
-                [-1, 0],
-                [2, 0],
-              ],
-              [
-                [-1, 0],
-                [3, 0],
-              ],
-              [
-                [-1, 0],
-                [4, 0],
-              ], //-
-              [
-                [0, -1],
-                [0, 1],
-              ],
-              [
-                [0, -1],
-                [0, 2],
-              ],
-              [
-                [0, -1],
-                [0, 3],
-              ],
-              [
-                [0, -1],
-                [0, 4],
-              ], //|
-            ];
-            if (isBlack(i, j)) {
-              nabors.forEach((nabor, index) => {
-                const [[i_p, j_p], [i_q, j_q]] = nabor;
-
-                if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
-                  edgeArr.push([i, j]);
-                }
-              });
-            }
-          }
-        }
-        edgeArr.forEach((point, index) => {
-          setWhite(point[0], point[1]);
-        });
-      }
-      for (let k = 0; k < 2; k++) {
-        let edgeArr = [];
-        for (let i = 0; i < height; i += 1) {
-          for (let j = 0; j < width / 4; j += 1) {
-            //对黑点操作
-            const nabors = [
-              [
-                [-1, -1],
-                [1, 1],
-              ],
-              [
-                [-1, -1],
-                [2, 2],
-              ],
-              [
-                [-1, -1],
-                [3, 3],
-              ], ///
-              [
-                [-1, 1],
-                [1, -1],
-              ],
-              [
-                [-1, 1],
-                [2, -2],
-              ],
-              [
-                [-1, 1],
-                [3, -3],
-              ], //\
-            ];
-            if (isBlack(i, j)) {
-              nabors.forEach((nabor, index) => {
-                const [[i_p, j_p], [i_q, j_q]] = nabor;
-
-                if (!isBlack(i + i_p, j + j_p) && !isBlack(i + i_q, j + j_q)) {
-                  edgeArr.push([i, j]);
-                }
-              });
-            }
-          }
-        }
-        edgeArr.forEach((point, index) => {
-          setWhite(point[0], point[1]);
-        });
-      }
-
-      //修补缝隙
-      for (let k = 0; k < 1; k++) {
-        let edgeArr = [];
-        for (let i = 0; i < height; i += 1) {
-          for (let j = 0; j < width; j += 1) {
-            //对黑点操作
-            const nabors = [
-              [
-                [-1, 0],
-                [1, 0],
-              ],
-              [
-                [0, -1],
-                [0, 1],
-              ],
-            ];
-            if (!isBlack(i, j)) {
-              nabors.forEach((nabor, index) => {
-                const [[i_p, j_p], [i_q, j_q]] = nabor;
-
-                if (isBlack(i + i_p, j + j_p) && isBlack(i + i_q, j + j_q)) {
-                  edgeArr.push([i, j]);
-                }
-              });
-            }
-          }
-        }
-        edgeArr.forEach((point, index) => {
-          setBlack(point[0], point[1]);
-        });
-      }
-
-      const myimg = new ImageData(imageData, width, height);
-      ctx.putImageData(myimg, 0, 0, 0, 0, width, height);
-
-      const dataURL = canvas.toDataURL("image/jpeg");
-      Tesseract.recognize(dataURL, "eng", { logger: (m) => {} }).then(({ data: { text } }) => {
-        let code = text;
-        code = code.replace(/(<c)|(¢c)/g, "c");
-        code = code.replace(/(<)|(¢)/g, "c");
-        code = code.replace(/(£)|(€)/g, "f");
-
-        code = code.replace(/[^a-zA-Z0-9]/, "");
-
-        code = code.match(/[a-zA-Z0-9]{1,}/)[0];
-        code = code.replace(/(s5)|(5s)|(S5)|(5S)/g, "5");
-        code = code.replace(/(s)|(S)/g, "5");
-        code = code.replace(/(fF)|(Ff)/g, "f");
-        code = code.replace(/(t)|(1)/g, "f");
-        code = code.replace(/(b6)|(6b)/g, "6");
-        code = code.replace(/G|B/g, "6");
-        code = code.replace(/(Qq)|(qQ)|(9q)|(q9)/g, "g");
-        code = code.replace(/(Q)|(q)|(9)/g, "g");
-        code = code.replace(/(A)/g, "4");
-        code = code.replace(/(bh)/g, "b");
-        code = code.replace(/h|H/g, "b");
-        code = code.replace(/(l|I)/g, "");
-        code = code.replace(/T/g, "7");
-
-        code = code.substr(-4);
-        console.log(text, code);
-        // alert(`${text}--${code}`);
-        document.getElementById("captcha").value = code;
-        const hasUsername = document.getElementById("username").value.length;
-        const hasPswd = document.getElementById("password").value.length;
-        if (hasUsername && hasPswd) {
-          document.getElementsByName("submit")[0].removeAttribute("disabled");
-          document.getElementsByName("submit")[0].click();
-        }
+          }, 10);
+        })();
       });
+      music.addEventListener("mouseleave", function () {
+        (() => {
+          let interval = setInterval(() => {
+            alpha -= 0.05;
+            music.style.opacity = alpha;
+            if (alpha <= 0) {
+              clearInterval(interval);
+            }
+          }, 10);
+        })();
+      });
+    });
+
+    document.body.appendChild(music);
+  }
+}
+
+/**
+ * 把海小棠换成别的机器人
+ */
+function fx_sso_setRobot(id) {
+  console.log("fx r: fx_sso_setRobot");
+  inject(id);
+  function inject(id) {
+    if (!(robotList && robotList[id - 1])) {
+      console.log("robot data err: ", id);
+      return;
+    }
+    //预处理原先布局 海小棠下班
+    const robotContent = document.querySelector(".robot-content");
+    robotContent.style.padding = "0 0";
+    const haixiaotang = document.querySelector(".robot-anm-container");
+    robotContent.removeChild(haixiaotang);
+    const toast = document.querySelector(".robot-mag-win");
+    toast.style.bottom = "500px";
+    //取图片和台词
+    const { imgs, tips } = robotList[id - 1];
+    const imgdata = imgs[((Math.random() * 100) >> 0) % imgs.length];
+    const tipStr = tips[((Math.random() * 100) >> 0) % tips.length];
+    //创建图片元素
+    const robotimg = document.createElement("img");
+    robotimg.src = imgdata;
+    robotimg.onclick = function () {
+      const tipStr = tips[((Math.random() * 100) >> 0) % tips.length];
+      showInfoOn(tipStr);
     };
+    robotContent.appendChild(robotimg);
+    //提示词
+    showInfoOn(tipStr);
+  }
+
+  function showInfoOn(info) {
+    document.querySelector("#robot-msg").textContent = info;
+    document.querySelector(".robot-mag-win").setAttribute("class", "robot-mag-win big-small");
+    document.querySelector(".robot-mag-win").setAttribute("class", "robot-mag-win small-big-small");
   }
 }
 
