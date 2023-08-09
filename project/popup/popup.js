@@ -6,6 +6,8 @@ const sentence = document.getElementById("sentence");
 const link_libSet = document.getElementById("link_libSet");
 const link_lib = document.getElementById("link_lib");
 const link_classes = document.getElementById("link_classes");
+const link_saa = document.getElementById("link_saa");
+const link_selectCourse = document.getElementById("link_selectCourse");
 const link_scloolMap = document.getElementById("link_scloolMap");
 const link_serv = document.getElementById("link_serv");
 const link_ee = document.getElementById("link_ee");
@@ -26,6 +28,8 @@ const linkData = [
   },
   { key: link_lib, src: "http://www.lib.tju.edu.cn/" },
   { key: link_classes, src: "http://classes.tju.edu.cn/eams/homeExt.action" },
+  { key: link_saa, src: "http://saa.tju.edu.cn/eams/homeExt.action" },
+  { key: link_selectCourse, src: "http://classes.tju.edu.cn/eams/stdElectCourse.action" },
   { key: link_scloolMap, src: "http://map.tju.edu.cn/index.shtml" },
   { key: link_serv, src: "http://serv.tju.edu.cn" },
   { key: link_ee, src: "http://ee.tju.edu.cn/" },
@@ -49,9 +53,11 @@ const classes_s5 = document.getElementById("classes-s5");
 const classes_s6 = document.getElementById("classes-s6");
 const classes_s7 = document.getElementById("classes-s7");
 const classes_s8 = document.getElementById("classes-s8");
+const classes_s9 = document.getElementById("classes-s9");
 const twt_s1 = document.getElementById("twt-s1");
 const mooc_s1 = document.getElementById("mooc-s1");
 const sso_s1 = document.getElementById("sso-s1");
+const sso_s2 = document.getElementById("sso-s2");
 const pigai_s1 = document.getElementById("pigai-s1");
 
 const switchData = [
@@ -65,10 +71,14 @@ const switchData = [
   { key: classes_s6, fx: "classes_clickHeart" },
   { key: classes_s7, fx: "classes_expElect" },
   { key: classes_s8, fx: "classes_ifameToolbar" },
+  { key: classes_s9, fx: "classes_timetablePreview" },
   { key: mooc_s1, fx: "mook_jumpQuestion" },
-  { key: sso_s1, fx: "sso_fixForm" },
+  { key: sso_s1, fx: "sso_genshinStart" },
+  { key: sso_s2, fx: "sso_setRobot" },
   { key: pigai_s1, fx: "pigai_paste" },
 ];
+
+const sso_robotselect = document.getElementById("sso-robotselect");
 
 //有可能要在不同中操作定时器 搞成全局变量
 var timer;
@@ -122,6 +132,18 @@ switchData.forEach(function (item, index) {
   }
 });
 
+//单独设置switch
+sso_robotselect.onchange = function (event) {
+  console.log(sso_robotselect.value);
+  chrome.storage.sync.get(["kissTJUConfig"], function (data) {
+    const { kissTJUConfig } = data;
+    if (kissTJUConfig && kissTJUConfig["sso_setRobot"]) {
+      kissTJUConfig["sso_setRobot"].value = sso_robotselect.value;
+      chrome.storage.sync.set({ kissTJUConfig }, function () {});
+    }
+  });
+};
+
 //初始化配置
 function init() {
   // chrome.storage.sync.remove(["kissTJUConfig"], function () {});
@@ -140,6 +162,8 @@ function init() {
           item.key.checked = true;
         }
       });
+
+      sso_robotselect.value = kissTJUConfig["sso_setRobot"].value | 0;
     } catch (e) {
       console.log(e);
       console.log("config error -> init");
@@ -185,12 +209,20 @@ function init() {
           switch: "classes-s8",
           value: 0,
         },
+        classes_timetablePreview: {
+          switch: "classes-s9",
+          value: 0,
+        },
         mook_jumpQuestion: {
           switch: "mook-s1",
           value: 0,
         },
-        sso_fixForm: {
+        sso_genshinStart: {
           switch: "sso-s1",
+          value: 0,
+        },
+        sso_setRobot: {
+          switch: "sso-s2",
           value: 0,
         },
         pigai_paste: {
@@ -204,6 +236,11 @@ function init() {
   });
 }
 init();
+
+//元素显示关系在初始化之后
+// if (!sso_s2.value) {
+//   sso_robotselect.style.display = "none";
+// }
 
 /********************以下是工具函数**************************/
 

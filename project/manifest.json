@@ -1,6 +1,6 @@
 {
   "name": "kiss_TJU",
-  "version": "1.4.5",
+  "version": "1.5.1",
   "manifest_version": 3,
   "description": "A collection of tools to improve TJUer's life experience",
   "icons": {
@@ -29,7 +29,7 @@
         "https://sso.tju.edu.cn/*",
         "http://www.pigai.org/*"
       ],
-      "js": ["tesseract.js", "chuxuan.js"],
+      "js": ["robotLib.js", "genshinBG.js", "chuxuan.js"],
       "run_at": "document_idle"
     }
   ],
