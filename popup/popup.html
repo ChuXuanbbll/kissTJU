@@ -1,0 +1,119 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body {
+            width: 500px;
+        }
+
+        button {
+            background-color: #336dab;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .linkTab {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .testF {
+            word-break: keep-all;
+        }
+
+        .foot {
+            display: flex;
+            flex-direction: row;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="hhhh">亲爱的朋友，你好：</h1>
+    <i id="sentence"></i>
+    <br></br>
+    <div class="linkTab">
+        <a>(所有设置刷新网页或重启浏览器生效)</a>
+        <div>
+            <a id="link_libSet" href="https://seatw.lib.tju.edu.cn/index.php/reserve/index.html">图书馆选座</a>
+            <input type="checkbox" class="testF" id="seat-s1" value="0" disabled="true">自动抢座(不可用)</input>
+            <input type="checkbox" class="testF" id="seat-s2" value="0">点击小心心</input>
+        </div>
+        <div>
+            <a id="link_lib" href="http://www.lib.tju.edu.cn/">图书馆</a>
+            <input type="checkbox" class="testF" id="lib-s1" value="0" disabled="true">点击小心心(不可用)</input>
+        </div>
+        <div>
+            <a id="link_classes" href="http://classes.tju.edu.cn/eams/homeExt.action">教育教学信息主站</a>
+            <a id="link_saa" href="http://saa.tju.edu.cn/eams/homeExt.action">备用站</a>
+            <a id="link_selectCourse" href="http://classes.tju.edu.cn/eams/stdElectCourse.action">直达选课</a>
+            <input type="checkbox" class="testF" id="classes-s1" value="0">自动评教</input>
+            <input type="checkbox" class="testF" id="classes-s2" value="0">培养计划表头固定</input>
+            <input type="checkbox" class="testF" id="classes-s3" value="0">移除底栏</input>
+            <input type="checkbox" class="testF" id="classes-s4" value="0">课表功能增强</input>
+            <input type="checkbox" class="testF" id="classes-s5" value="0">计算加权</input>
+            <input type="checkbox" class="testF" id="classes-s6" value="0">点击小心心</input>
+            <input type="checkbox" class="testF" id="classes-s7" value="0">实验选课功能增强</input>
+            <input type="checkbox" class="testF" id="classes-s8" value="0">子网页功能增强</input>
+            <input type="checkbox" class="testF" id="classes-s9" value="0">开课课表查看</input>
+        </div>
+        <div>
+            <a id="link_scloolMap" href="http://map.tju.edu.cn/index.shtml">校园地图</a>
+        </div>
+        <div>
+            <a id="link_serv" href="http://serv.tju.edu.cn">综合服务平台</a>
+        </div>
+        <div>
+            <a id="link_ee" href="http://ee.tju.edu.cn/">办公服务平台(已弃用)</a>
+        </div>
+        <div>
+            <a id="link_twt" href="https://theory.twt.edu.cn/">天外天</a>
+            <input type="checkbox" class="testF" id="twt-s1" value="0" disabled="true">自动答题(不可用)</input>
+        </div>
+        <div>
+            <a id="link_geogeba" href="https://www.geogebra.org/calculator">GeoGebra</a>
+        </div>
+        <div>
+            <a id="link_cet" href="https://cet.neea.edu.cn">CET</a>
+        </div>
+        <div>
+            <a id="link_cg" href="https://tyapp.chingo.cn/cgapp/">创高控制台</a>
+        </div>
+        <div>
+            <a id="link_mooc" href="https://www.icourse163.org/">MOOC</a>
+            <input type="checkbox" class="testF" id="mooc-s1" value="0">视频跳答题</input>
+        </div>
+        <div>
+            <a id="link_sso" href="https://sso.tju.edu.cn/cas/login">验证/融合门户</a>
+            <input type="checkbox" class="testF" id="sso-s1" value="0">原神启动</input>
+            <input type="checkbox" class="testF" id="sso-s2" value="0">开除海小棠</input>
+            <select id="sso-robotselect">
+                <option value="0">选择你的新欢</option>
+                <option value="1">八重神子</option>
+                <option value="2">胡桃</option>
+                <option value="3">刻晴</option>
+                <option value="4">可莉</option>
+                <option value="5">阿尼亚</option>
+                <option value="6">蔡徐坤</option>
+                <option value="7">丁真</option>
+            </select>
+            <input type="checkbox" class="testF" id="sso-s3" value="0" disabled="true">永久登录(不可用)</input>
+        </div>
+        <div>
+            <a id="link_pigai" href="http://www.pigai.org/index.php">批改网</a>
+            <input type="checkbox" class="testF" id="pigai-s1" value="0">作文可粘贴</input>
+        </div>
+    </div>
+
+    <div class="foot">
+        <h3 id="wwww">作者: 楚轩</h3>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

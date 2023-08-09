@@ -1,0 +1,37 @@
+{
+  "name": "kiss_TJU",
+  "version": "1.5.1",
+  "manifest_version": 3,
+  "description": "A collection of tools to improve TJUer's life experience",
+  "icons": {
+    "16": "icons/chuxuan16x16.png",
+    "32": "icons/chuxuan32x32.png",
+    "48": "icons/chuxuan48x48.png",
+    "128": "icons/chuxuan128x128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "http://classes.tju.edu.cn/*",
+        "https://seatw.lib.tju.edu.cn/*",
+        "http://www.lib.tju.edu.cn/*",
+        "http://map.tju.edu.cn/index.shtml",
+        "http://serv.tju.edu.cn/*",
+        "http://ee.tju.edu.cn/*",
+        "https://theory.twt.edu.cn/*",
+        "https://cet.neea.edu.cn/*",
+        "https://tyapp.chingo.cn/cgapp/*",
+        "https://www.icourse163.org/",
+        "https://sso.tju.edu.cn/*",
+        "http://www.pigai.org/*"
+      ],
+      "js": ["robotLib.js", "genshinBG.js", "chuxuan.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["tabs", "storage"]
+}
