@@ -1290,7 +1290,7 @@ function fx_sso_genshinStart() {
     music.addEventListener("play", function () {
       (() => {
         let interval = setInterval(() => {
-          alpha -= 0.05;
+          alpha -= 0.051; //给个零头确保不会死循环
           music.style.opacity = alpha;
           if (alpha <= 0) {
             clearInterval(interval);
@@ -1301,7 +1301,7 @@ function fx_sso_genshinStart() {
       music.addEventListener("mouseenter", function () {
         (() => {
           let interval = setInterval(() => {
-            alpha += 0.05;
+            alpha += 0.053;
             music.style.opacity = alpha;
             if (alpha >= 1) {
               clearInterval(interval);
@@ -1312,7 +1312,7 @@ function fx_sso_genshinStart() {
       music.addEventListener("mouseleave", function () {
         (() => {
           let interval = setInterval(() => {
-            alpha -= 0.05;
+            alpha -= 0.059;
             music.style.opacity = alpha;
             if (alpha <= 0) {
               clearInterval(interval);
