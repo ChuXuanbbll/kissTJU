@@ -18,6 +18,8 @@ const link_cg = document.getElementById("link_cg");
 const link_mooc = document.getElementById("link_mooc");
 const link_sso = document.getElementById("link_sso");
 const link_pigai = document.getElementById("link_pigai");
+const link_net = document.getElementById("link_net");
+const link_netVer = document.getElementById("link_netVer");
 
 const footer = document.getElementById("wwww");
 
@@ -40,6 +42,8 @@ const linkData = [
   { key: link_mooc, src: "https://www.icourse163.org/" },
   { key: link_sso, src: "https://sso.tju.edu.cn/cas/login" },
   { key: link_pigai, src: "http://www.pigai.org/" },
+  { key: link_net, src: "http://202.113.15.50:8800/?" },
+  { key: link_netVer, src: "http://202.113.5.130/srun_portal_pc?ac_id=11&theme=tju" },
 ];
 
 const seat_s1 = document.getElementById("seat-s1");
