@@ -1,4 +1,4 @@
-const isLite = false; //是否为精简版分支 main分支会有花里胡哨的功能 精简版会砍掉大体积的图片视频音频资源等
+const isLite = true; //是否为精简版分支 main分支会有花里胡哨的功能 精简版会砍掉大体积的图片视频音频资源等
 
 const $host = window.location.host;
 const $path = window.location.pathname;
