@@ -1,3 +1,5 @@
+const isLite = false; //是否为精简版分支 main分支会有花里胡哨的功能 精简版会砍掉大体积的图片视频音频资源等
+
 const $host = window.location.host;
 const $path = window.location.pathname;
 
@@ -481,6 +483,7 @@ function fx_showWeightedScore() {
  * 鼠标点击显示小心心 class用iframe比较特殊所以单独写
  */
 function fx_classes_clickHeart() {
+	if (isLite) return;
 	console.log("fx r: clickHeart");
 	let timer = setInterval(function () {
 		if (document.getElementById("current-bar")?.children[1]?.textContent) {
@@ -807,6 +810,7 @@ function fx_mook_jumpQuestion() {
  * 通用点击小心心
  */
 function fx_common_clickHeart() {
+	if (isLite) return;
 	(function (window, document, undefined) {
 		var hearts = [];
 
@@ -992,9 +996,10 @@ function fx_sso_fixForm() {
 }
 
 /**
- * 登录验证界面原神启动特效
+ * 登录验证界面原神启动特效 精简版无效
  */
 function fx_sso_genshinStart() {
+	if (isLite) return;
 	console.log("fx r: fx_sso_genshinStart");
 	inject();
 	function inject() {
@@ -1129,9 +1134,10 @@ function fx_sso_genshinStart() {
 }
 
 /**
- * 把海小棠换成别的机器人
+ * 把海小棠换成别的机器人 精简版无效
  */
 function fx_sso_setRobot(id) {
+	if (isLite) return;
 	console.log("fx r: fx_sso_setRobot");
 	inject(id);
 	function inject(id) {

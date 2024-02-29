@@ -1,4 +1,5 @@
 //写给开发者：添加功能要注意6个部分，链接，链接data，switch,switchdata,init-kissTJUconfig,manifect.json
+const isLite = true; //是否为精简版分支 main分支会有花里胡哨的功能 精简版会砍掉大体积的图片视频音频资源等
 
 const title = document.getElementById("hhhh");
 const sentence = document.getElementById("sentence");
@@ -100,7 +101,7 @@ const sso_robotselect = document.getElementById("sso-robotselect");
 var timer;
 
 //每次点开都有一个精品句子 外部API
-if (sentence) {
+if (sentence && !isLite) {
 	sendGetRequest("https://api.xygeng.cn/one", function (resp) {
 		const { content, origin } = JSON.parse(resp).data;
 		sentence.innerHTML = `${content}   --${origin}`;
@@ -203,7 +204,7 @@ function init() {
 				},
 				removeFooter: {
 					switch: "classes-s3",
-					value: 0,
+					value: 1,
 				},
 				checkClassInfo: {
 					switch: "classes-s4",
@@ -215,7 +216,7 @@ function init() {
 				},
 				classes_clickHeart: {
 					switch: "classes-s6",
-					value: 1,
+					value: 0,
 				},
 				classes_expElect: {
 					switch: "classes-s7",
@@ -274,6 +275,20 @@ init();
 // if (!sso_s2.value) {
 //   sso_robotselect.style.display = "none";
 // }
+
+//精简版砍去不必要功能
+if (isLite) {
+	const removeList = [hhhh, sentence, sso_robotselect];
+	const disableList = [seat_s1, seat_s2, classes_s6, sso_s1, sso_s2];
+
+	removeList.forEach((item) => {
+		item.remove();
+	});
+
+	disableList.forEach((item) => {
+		item.setAttribute("disabled", "disabled");
+	});
+}
 
 /********************以下是工具函数**************************/
 
