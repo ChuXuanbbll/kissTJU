@@ -1,5 +1,5 @@
 //写给开发者：添加功能要注意6个部分，链接，链接data，switch,switchdata,init-kissTJUconfig,manifect.json
-const isLite = true; //是否为精简版分支 main分支会有花里胡哨的功能 精简版会砍掉大体积的图片视频音频资源等
+const isLite = false; //是否为精简版分支 main分支会有花里胡哨的功能 精简版会砍掉大体积的图片视频音频资源等
 
 const title = document.getElementById("hhhh");
 const sentence = document.getElementById("sentence");
