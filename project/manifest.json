@@ -1,6 +1,6 @@
 {
   "name": "kiss_TJU",
-  "version": "1.5.1",
+  "version": "1.5.3",
   "manifest_version": 3,
   "description": "A collection of tools to improve TJUer's life experience",
   "icons": {
@@ -12,7 +12,6 @@
   "action": {
     "default_popup": "popup/popup.html"
   },
-
   "content_scripts": [
     {
       "matches": [
@@ -27,11 +26,20 @@
         "https://tyapp.chingo.cn/cgapp/*",
         "https://www.icourse163.org/",
         "https://sso.tju.edu.cn/*",
-        "http://www.pigai.org/*"
+        "http://www.pigai.org/*",
+        "http://121.193.132.43/*"
       ],
-      "js": ["robotLib.js", "genshinBG.js", "chuxuan.js"],
+      "js": [
+        "robotLib.js",
+        "genshinBG.js",
+        "tesseract.js",
+        "chuxuan.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["tabs", "storage"]
+  "permissions": [
+    "tabs",
+    "storage"
+  ]
 }
